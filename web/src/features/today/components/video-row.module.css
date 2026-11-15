@@ -1,4 +1,8 @@
 .row {
+  display: flex;
+  gap: var(--space-xxs);
+  align-items: center;
+  padding-right: var(--space-xs);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
@@ -6,6 +10,8 @@
 
 .link {
   display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
   gap: var(--space-md);
   align-items: center;
   min-height: var(--size-min-target);
@@ -15,9 +21,35 @@
   text-decoration: none;
 }
 
-.link:focus-visible {
+.save {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-min-target);
+  height: var(--size-min-target);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-soft);
+  cursor: pointer;
+}
+
+.save-active {
+  composes: save;
+  color: var(--color-accent);
+}
+
+.save-icon {
+  width: var(--size-icon);
+  height: var(--size-icon);
+}
+
+.link:focus-visible,
+.save:focus-visible {
   outline: var(--size-focus-ring) solid var(--color-focus);
-  outline-offset: var(--size-focus-ring);
+  outline-offset: calc(var(--size-focus-ring) * -1);
 }
 
 .thumbnail {

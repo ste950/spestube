@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { toChannel, toTodayFeed, toVideo } from '@data/library/mappers/library-mappers';
-import { isTodayModel, isVideoModel } from '@data/library/models/library-model-guards';
+import {
+  toChannel,
+  toCollection,
+  toCollectionDetail,
+  toTodayFeed,
+  toVideo,
+} from '@data/library/mappers/library-mappers';
+import {
+  isCollectionDetailModel,
+  isCollectionModel,
+  isTodayModel,
+  isVideoModel,
+} from '@data/library/models/library-model-guards';
 import type { VideoModel } from '@data/library/models/library-models';
 
 const model = (overrides: Partial<VideoModel> = {}): VideoModel => ({
@@ -10,37 +21,60 @@ const model = (overrides: Partial<VideoModel> = {}): VideoModel => ({
   published_at: '2026-11-04T15:52:59Z',
   duration_seconds: null,
   status: 'released',
-  queue_reason: '',
-  queue_expires_at: null,
-  queue_days_left: 0,
+  collection_ids: [],
   ...overrides,
 });
 
 describe('toVideo', () => {
-  it('un video in Oggi non ha una permanenza in coda', () => {
-    const video = toVideo(model());
-    expect(video.queue).toBeNull();
+  it('porta le date come date e le raccolte così come sono', () => {
+    const video = toVideo(model({ collection_ids: [3, 7] }));
     expect(video.publishedAt.toISOString()).toBe('2026-11-04T15:52:59.000Z');
-  });
-
-  it('un video in coda porta motivo, scadenza e giorni rimasti', () => {
-    const video = toVideo(
-      model({
-        status: 'queued',
-        queue_reason: "per l'orto",
-        queue_expires_at: '2026-11-29T09:00:00Z',
-        queue_days_left: 11,
-      }),
-    );
-    expect(video.queue).toEqual({
-      reason: "per l'orto",
-      expiresAt: new Date('2026-11-29T09:00:00Z'),
-      daysLeft: 11,
-    });
+    expect(video.collectionIds).toEqual([3, 7]);
   });
 
   it("uno stato che l'app non conosce diventa archiviato", () => {
-    expect(toVideo(model({ status: 'qualcosa di nuovo' })).status).toBe('archived');
+    // Anche quello di prima delle raccolte: un server vecchio può mandarlo ancora.
+    expect(toVideo(model({ status: 'queued' })).status).toBe('archived');
+  });
+});
+
+describe('le raccolte', () => {
+  const collection = {
+    id: 4,
+    name: 'Orto',
+    description: '',
+    video_count: 1,
+    cover_video_id: 'v1',
+  };
+
+  it('una raccolta vuota non ha copertina', () => {
+    expect(toCollection({ ...collection, video_count: 0, cover_video_id: null })).toEqual({
+      id: 4,
+      name: 'Orto',
+      description: '',
+      videoCount: 0,
+      coverVideoId: null,
+    });
+  });
+
+  it('il dettaglio porta i video con la data di ingresso', () => {
+    const detail = { collection, videos: [{ ...model(), added_at: '2026-11-10T08:00:00Z' }] };
+    expect(isCollectionDetailModel(detail)).toBe(true);
+    const mapped = toCollectionDetail(detail);
+    expect(mapped.collection.coverVideoId).toBe('v1');
+    expect(mapped.videos[0]?.addedAt.toISOString()).toBe('2026-11-10T08:00:00.000Z');
+  });
+
+  it.each([
+    ['un id testuale', { ...collection, id: '4' }],
+    ['una copertina numerica', { ...collection, cover_video_id: 1 }],
+    ['senza conteggio', { ...collection, video_count: undefined }],
+  ])('rifiutano %s', (_name, value) => {
+    expect(isCollectionModel(value)).toBe(false);
+  });
+
+  it('rifiutano un video della raccolta senza data di ingresso', () => {
+    expect(isCollectionDetailModel({ collection, videos: [model()] })).toBe(false);
   });
 });
 
@@ -68,6 +102,7 @@ describe('i controlli di forma', () => {
   it.each([
     ['un campo mancante', { ...model(), title: undefined }],
     ['un tipo sbagliato', { ...model(), duration_seconds: '18:04' }],
+    ['raccolte che non sono numeri', { ...model(), collection_ids: ['3'] }],
     ['null', null],
     ['una lista', [model()]],
   ])('rifiutano %s', (_name, value) => {

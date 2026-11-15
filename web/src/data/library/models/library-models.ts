@@ -14,9 +14,24 @@ export type VideoModel = {
   readonly published_at: string;
   readonly duration_seconds: number | null;
   readonly status: string;
-  readonly queue_reason: string;
-  readonly queue_expires_at: string | null;
-  readonly queue_days_left: number;
+  readonly collection_ids: readonly number[];
+};
+
+export type CollectionModel = {
+  readonly id: number;
+  readonly name: string;
+  readonly description: string;
+  readonly video_count: number;
+  readonly cover_video_id: string | null;
+};
+
+export type CollectionVideoModel = VideoModel & {
+  readonly added_at: string;
+};
+
+export type CollectionDetailModel = {
+  readonly collection: CollectionModel;
+  readonly videos: readonly CollectionVideoModel[];
 };
 
 export type TodayModel = {

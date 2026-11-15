@@ -9,19 +9,50 @@ import { useTranslate } from '@shared/i18n/use-translate';
 import { useNavBadges } from '@shared/navigation/nav-badges';
 import styles from './app-layout.module.css';
 
-type Tab = { to: string; label: TranslationKey; icon: AppIconName; alsoUnder?: string };
+type Place = { pathname: string; search: string };
+
+type Tab = {
+  to: string;
+  label: TranslationKey;
+  icon: AppIconName;
+  isActive: (place: Place) => boolean;
+};
+
+const under = (pathname: string, root: string) =>
+  pathname === root || pathname.startsWith(`${root}/`);
+
+// Un video aperto da una raccolta porta con sé `?raccolta=`: è così che Guarda sa dove
+// tornare, e la barra quale sezione tenere accesa.
+const fromCollection = (search: string) => new URLSearchParams(search).has('raccolta');
 
 // Tre sezioni e nessuna quarta: niente ricerca, niente consigliati, niente profilo.
 const TABS: readonly Tab[] = [
-  // Guardare un video è una tappa di Oggi: mentre il player è aperto la sezione resta accesa.
-  { to: '/', label: 'common_nav_today', icon: 'today', alsoUnder: '/guarda' },
-  { to: '/da-vedere', label: 'common_nav_queue', icon: 'queue' },
-  { to: '/canali', label: 'common_nav_channels', icon: 'channels' },
+  // Guardare un video è una tappa della sezione da cui lo si è aperto.
+  {
+    to: '/',
+    label: 'common_nav_today',
+    icon: 'today',
+    isActive: ({ pathname, search }) =>
+      pathname === '/' || (under(pathname, '/guarda') && !fromCollection(search)),
+  },
+  {
+    to: '/raccolte',
+    label: 'common_nav_collections',
+    icon: 'collections',
+    isActive: ({ pathname, search }) =>
+      under(pathname, '/raccolte') || (under(pathname, '/guarda') && fromCollection(search)),
+  },
+  {
+    to: '/impostazioni',
+    label: 'common_nav_settings',
+    icon: 'settings',
+    isActive: ({ pathname }) => under(pathname, '/impostazioni'),
+  },
 ];
 
 export function AppLayout() {
   const t = useTranslate();
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const counts = useNavBadges((state) => state.counts);
 
   return (
@@ -36,11 +67,9 @@ export function AppLayout() {
       </main>
       <nav className={styles.tabs} aria-label={t('common_nav_label')}>
         {TABS.map((tab) => {
-          // La sezione attiva si calcola qui e non con `NavLink`: sotto /guarda deve restare
-          // accesa Oggi, e `NavLink` segna come corrente solo il proprio percorso.
-          const active =
-            pathname === tab.to ||
-            (tab.alsoUnder !== undefined && pathname.startsWith(tab.alsoUnder));
+          // La sezione attiva si calcola qui e non con `NavLink`: sotto /guarda dipende da
+          // dove si viene, e `NavLink` segna come corrente solo il proprio percorso.
+          const active = tab.isActive({ pathname, search });
           const count = counts[tab.to] ?? 0;
           return (
             <Link

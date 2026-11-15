@@ -1,0 +1,63 @@
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin: 0;
+  padding: var(--space-md) 0 var(--space-lg);
+  border: 0;
+}
+
+.legend {
+  float: left;
+  margin-bottom: var(--space-sm);
+  padding: 0;
+}
+
+.options {
+  display: flex;
+  clear: both;
+  gap: var(--space-xs);
+  padding: var(--space-xxs);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
+}
+
+.option {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--size-min-target);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-soft);
+  font-size: var(--font-size-label);
+  cursor: pointer;
+}
+
+/* La scelta attiva si distingue per fondo e per peso del testo, non solo per colore. */
+.option-active {
+  composes: option;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+/* Il radio resta nell'albero, e con lui la tastiera: si vede solo il segmento. */
+.radio {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.option:has(.radio:focus-visible) {
+  outline: var(--size-focus-ring) solid var(--color-focus);
+}
+
+.hint {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+}

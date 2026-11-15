@@ -41,27 +41,31 @@
   font-size: var(--font-size-small);
 }
 
-.reason {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xxs);
-  padding: var(--space-md) var(--space-lg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+.save {
+  display: inline-flex;
+  gap: var(--space-xs);
+  align-items: center;
+  justify-content: center;
+  min-height: var(--size-tab-target);
+  padding: 0 var(--space-lg);
+  border: 1px solid var(--color-border-field);
+  border-radius: var(--radius-md);
   background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
 }
 
-.reason-label {
-  margin: 0;
+.save-active {
+  composes: save;
+  border-color: var(--color-accent);
   color: var(--color-accent);
-  font-size: var(--font-size-caption);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
-.reason-text {
-  margin: 0;
+.save-icon {
+  width: var(--space-xl);
+  height: var(--space-xl);
 }
 
 .actions {
@@ -89,6 +93,7 @@
 }
 
 .back:focus-visible,
+.save:focus-visible,
 .secondary:focus-visible {
   outline: var(--size-focus-ring) solid var(--color-focus);
   outline-offset: var(--size-focus-ring);

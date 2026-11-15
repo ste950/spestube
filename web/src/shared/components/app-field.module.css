@@ -1,0 +1,48 @@
+/* I campi di testo dell'app, condivisi da chiunque abbia un form: input e textarea hanno
+   la stessa faccia. */
+.label {
+  font-size: var(--font-size-label);
+  font-weight: 600;
+}
+
+.field {
+  width: 100%;
+  min-height: var(--size-tab-target);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-border-field);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--font-size-field);
+  resize: none;
+}
+
+.field:focus-visible {
+  outline: var(--size-focus-ring) solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.field[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+
+.error {
+  margin: 0;
+  color: var(--color-danger);
+  font-size: var(--font-size-label);
+  font-weight: 500;
+}
+
+.hint {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: flex-end;
+  margin-top: var(--space-sm);
+}

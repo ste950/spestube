@@ -4,7 +4,7 @@ import { fail, ok } from '@core/result/result';
 import type { Channel } from '@domain/library/entities/channel';
 import type { ChannelRepository } from '@domain/library/repositories/channel-repository';
 import type { SettingsRepository } from '@domain/settings/repositories/settings-repository';
-import { createChannelsStore } from '@features/channels/state/channels-store';
+import { createChannelsStore } from '@features/settings/state/channels-store';
 
 const channel = (id: string, title: string): Channel => ({
   id,

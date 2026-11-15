@@ -14,6 +14,8 @@ export type WatchState = {
   readonly load: (videoId: string) => Promise<void>;
   readonly end: () => void;
   readonly markWatched: () => Promise<void>;
+  // Le raccolte del video sono cambiate nel pannello «Salva in».
+  readonly setCollections: (videoId: string, collectionIds: readonly number[]) => void;
 };
 
 export type WatchStore = UseBoundStore<StoreApi<WatchState>>;
@@ -28,7 +30,13 @@ export function createWatchStore(videos: VideoRepository): WatchStore {
     isMarking: false,
 
     load: async (videoId) => {
-      set({ requestedId: videoId, video: null, isLoading: true, error: null, hasEnded: false });
+      set({
+        requestedId: videoId,
+        video: null,
+        isLoading: true,
+        error: null,
+        hasEnded: false,
+      });
       const result = await videos.getVideo(videoId);
       // Una risposta lenta per un video da cui si è già usciti non deve sovrascrivere
       // quello aperto adesso.
@@ -52,6 +60,11 @@ export function createWatchStore(videos: VideoRepository): WatchStore {
         return;
       }
       set({ isMarking: false, video: result.value });
+    },
+
+    setCollections: (videoId, collectionIds) => {
+      const current = get().video;
+      if (current?.id === videoId) set({ video: { ...current, collectionIds } });
     },
   }));
 }

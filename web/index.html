@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#F3F4F7" />
+    <meta name="theme-color" content="#F3F4F7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0F1218" media="(prefers-color-scheme: dark)" />
     <meta name="description" content="YouTube, solo quello che hai scelto di guardare." />
     <!-- Il sito sta dietro un'autenticazione e non ha niente da far indicizzare. -->
     <meta name="robots" content="noindex" />
@@ -14,6 +15,17 @@
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>SpesTube</title>
+    <script>
+      // Il tema scelto si applica prima che parta l'app: senza, chi ha scelto «Scuro» vedrebbe
+      // un lampo chiaro a ogni apertura. La chiave è THEME_STORAGE_KEY di
+      // src/data/appearance/sources/local-theme-source.ts.
+      try {
+        var theme = localStorage.getItem('spestube.theme.v1');
+        if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
+      } catch (error) {
+        // Senza storage vale il tema del sistema.
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

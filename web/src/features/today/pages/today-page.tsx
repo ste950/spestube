@@ -1,13 +1,16 @@
 import { useEffect } from 'react';
+import { isSaved } from '@domain/library/entities/video';
 import { AppMessage } from '@shared/components/app-message';
 import { AppSpinner } from '@shared/components/app-spinner';
 import { AppVisuallyHidden } from '@shared/components/app-visually-hidden';
 import { renderMessage } from '@shared/i18n/message';
+import { SaveSheet } from '@shared/save-sheet/save-sheet';
 import { useTranslate } from '@shared/i18n/use-translate';
 import { DevTools } from '../components/dev-tools';
 import { FeedEnd } from '../components/feed-end';
 import { VideoRow } from '../components/video-row';
 import { nextReleaseLabel } from '../state/today-labels';
+import { useTodaySaveSheet } from '../state/use-today-save-sheet';
 import { useTodayStore } from '../state/use-today-store';
 import styles from './today-page.module.css';
 
@@ -22,6 +25,7 @@ export function TodayPage() {
   const isReleasing = useTodayStore((state) => state.isReleasing);
   const load = useTodayStore((state) => state.load);
   const releaseNow = useTodayStore((state) => state.releaseNow);
+  const openSaveSheet = useTodaySaveSheet((state) => state.open);
 
   useEffect(() => {
     void load();
@@ -49,6 +53,10 @@ export function TodayPage() {
               key={video.id}
               video={video}
               href={`/guarda/${encodeURIComponent(video.id)}`}
+              saveLabel={t(isSaved(video) ? 'today_saved_action' : 'today_save_action', {
+                title: video.title,
+              })}
+              onSave={() => void openSaveSheet(video.id, video.title)}
             />
           ))}
         </ul>
@@ -62,6 +70,7 @@ export function TodayPage() {
       )}
 
       {notice !== null && <AppMessage tone="success" text={renderMessage(t, notice)} />}
+      <SaveSheet store={useTodaySaveSheet} />
       {devTools && (
         <DevTools
           title={t('today_dev_title')}

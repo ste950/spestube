@@ -1,8 +1,40 @@
 import breakpointValues from './breakpoints.json';
 
-// I colori del design di SpesTube (docs/design). Lo schema è uno solo, chiaro: è quello
-// disegnato, e un tema scuro si aggiunge qui quando esiste un disegno da cui prenderlo.
-export const palette = {
+// Il tipo della tavolozza è uno solo: un colore che esiste in uno schema e non nell'altro
+// non compila, ed è il motivo per cui i token sono un oggetto e non un elenco di variabili
+// scritte a mano in un foglio.
+export type Palette = {
+  readonly background: string;
+  readonly surface: string;
+  readonly surfaceMuted: string;
+  readonly border: string;
+  readonly borderField: string;
+  readonly borderDashed: string;
+  readonly divider: string;
+  readonly text: string;
+  readonly textSoft: string;
+  readonly textMuted: string;
+  readonly accent: string;
+  readonly accentDark: string;
+  readonly accentTint: string;
+  readonly onAccent: string;
+  readonly focus: string;
+  readonly player: string;
+  readonly onPlayer: string;
+  readonly onPlayerMuted: string;
+  readonly playerAccent: string;
+  readonly thumbnail: string;
+  readonly badge: string;
+  readonly scrim: string;
+  readonly warningText: string;
+  readonly warningTint: string;
+  readonly warningBorder: string;
+  readonly danger: string;
+  readonly dangerTint: string;
+};
+
+// I colori del design di SpesTube (docs/design).
+export const lightPalette: Palette = {
   background: '#F3F4F7',
   surface: '#FFFFFF',
   surfaceMuted: '#EEF0F4',
@@ -24,15 +56,47 @@ export const palette = {
   playerAccent: '#A9C4F5',
   thumbnail: '#C9CED8',
   badge: '#2B2F38',
-  track: '#E6E9EF',
-  trackFill: '#8FA3C9',
-  warning: '#B8642C',
+  // Il velo dietro una finestra: il colore del testo, semitrasparente.
+  scrim: '#15181F8C',
   warningText: '#9A4C1A',
   warningTint: '#F1E4DA',
   warningBorder: '#E3C9B6',
   danger: '#A3271B',
   dangerTint: '#FBEAE7',
-} as const;
+};
+
+// Lo schema scuro tiene la stessa voce del chiaro: superfici fredde con un filo di blu, e
+// il blu dell'app schiarito, perché #2557C7 su un fondo scuro non si legge. Le coppie di
+// contrasto le verifica un test.
+export const darkPalette: Palette = {
+  background: '#0F1218',
+  surface: '#181C24',
+  surfaceMuted: '#20252F',
+  border: '#2A303C',
+  borderField: '#3D4555',
+  borderDashed: '#434C5D',
+  divider: '#232833',
+  text: '#E8EBF1',
+  textSoft: '#B9C0CC',
+  textMuted: '#A0A8B6',
+  accent: '#8AADF4',
+  accentDark: '#B9CDF8',
+  accentTint: '#1D2A46',
+  onAccent: '#0B1020',
+  focus: '#B9CDF8',
+  player: '#05070A',
+  onPlayer: '#FFFFFF',
+  onPlayerMuted: '#C9CFDA',
+  playerAccent: '#A9C4F5',
+  thumbnail: '#2A303C',
+  badge: '#05070A',
+  scrim: '#000000A6',
+  warningText: '#F0B184',
+  warningTint: '#33251B',
+  warningBorder: '#5C4030',
+  danger: '#F29387',
+  dangerTint: '#3A1E1B',
+};
 
 // Le misure sono in `rem`: seguono la dimensione del testo scelta da chi legge.
 export const metrics = {

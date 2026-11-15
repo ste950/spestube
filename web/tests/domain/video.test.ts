@@ -1,11 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import {
-  durationMinutes,
-  QUEUE_LIFETIME_DAYS,
-  queueElapsed,
-  thumbnailUrl,
-  type Video,
-} from '@domain/library/entities/video';
+import { durationMinutes, isSaved, thumbnailUrl, type Video } from '@domain/library/entities/video';
+import { moveCollection } from '@domain/library/use-cases/move-collection';
 
 const video = (overrides: Partial<Video> = {}): Video => ({
   id: 'KfODG5REyss',
@@ -14,7 +9,7 @@ const video = (overrides: Partial<Video> = {}): Video => ({
   publishedAt: new Date('2026-11-04T15:52:59Z'),
   durationSeconds: null,
   status: 'released',
-  queue: null,
+  collectionIds: [],
   ...overrides,
 });
 
@@ -31,20 +26,32 @@ describe('durationMinutes', () => {
 
 describe('thumbnailUrl', () => {
   it("si deriva dall'id del video", () => {
-    expect(thumbnailUrl(video())).toBe('https://i.ytimg.com/vi/KfODG5REyss/mqdefault.jpg');
+    expect(thumbnailUrl('KfODG5REyss')).toBe('https://i.ytimg.com/vi/KfODG5REyss/mqdefault.jpg');
   });
 });
 
-describe('queueElapsed', () => {
-  const entry = (daysLeft: number) => ({ reason: 'serve', expiresAt: new Date(), daysLeft });
+describe('isSaved', () => {
+  it('un video è salvato se sta in almeno una raccolta', () => {
+    expect(isSaved(video())).toBe(false);
+    expect(isSaved(video({ collectionIds: [2] }))).toBe(true);
+  });
+});
+
+describe('moveCollection', () => {
+  const order = [1, 2, 3];
 
   it.each([
-    ['appena entrato', 14, 0],
-    ['a metà', 7, 0.5],
-    ['scaduto', 0, 1],
-    ['mai oltre il pieno', -3, 1],
-    ['mai sotto zero', 20, 0],
-  ])('%s', (_name, daysLeft, expected) => {
-    expect(queueElapsed(entry(daysLeft), QUEUE_LIFETIME_DAYS)).toBeCloseTo(expected);
+    ['su di un posto', 2, 'up', [2, 1, 3]],
+    ['giù di un posto', 2, 'down', [1, 3, 2]],
+    ['la prima non sale', 1, 'up', [1, 2, 3]],
+    ["l'ultima non scende", 3, 'down', [1, 2, 3]],
+    ['una sconosciuta non sposta niente', 9, 'up', [1, 2, 3]],
+  ] as const)('%s', (_name, id, direction, expected) => {
+    expect(moveCollection({ order, id, direction })).toEqual(expected);
+  });
+
+  it("non tocca l'ordine che riceve", () => {
+    moveCollection({ order, id: 2, direction: 'up' });
+    expect(order).toEqual([1, 2, 3]);
   });
 });

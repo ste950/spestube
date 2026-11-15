@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { describe, expect, it } from 'vitest';
 import type { Video } from '@domain/library/entities/video';
@@ -11,14 +11,19 @@ const video: Video = {
   publishedAt: new Date('2026-11-10T12:00:00Z'),
   durationSeconds: null,
   status: 'released',
-  queue: null,
+  collectionIds: [],
 };
 
-const renderRow = (overrides: Partial<Video> = {}) =>
+const renderRow = (overrides: Partial<Video> = {}, onSave: () => void = () => {}) =>
   render(
     <MemoryRouter>
       <ul>
-        <VideoRow video={{ ...video, ...overrides }} href="/guarda/a0KLaUFyDMU" />
+        <VideoRow
+          video={{ ...video, ...overrides }}
+          href="/guarda/a0KLaUFyDMU"
+          saveLabel="Salva in una raccolta: farina"
+          onSave={onSave}
+        />
       </ul>
     </MemoryRouter>,
   );
@@ -40,6 +45,28 @@ describe('la riga di un video', () => {
     renderRow();
     const link = screen.getByRole('link', { name: /Cosa cambia tra farina/ });
     expect(link).toHaveAttribute('href', '/guarda/a0KLaUFyDMU');
+  });
+
+  it('ha un bottone per salvarlo, fuori dal collegamento', () => {
+    let asked = 0;
+    renderRow({}, () => {
+      asked += 1;
+    });
+
+    const button = screen.getByRole('button', { name: 'Salva in una raccolta: farina' });
+    // Dentro il link non si raggiungerebbe da tastiera, e un tocco aprirebbe il video.
+    expect(button.closest('a')).toBeNull();
+    fireEvent.click(button);
+    expect(asked).toBe(1);
+  });
+
+  it('il segnalibro si riempie quando il video è in una raccolta', () => {
+    const empty = renderRow();
+    expect(empty.container.querySelector('button svg')).toHaveAttribute('fill', 'none');
+    empty.unmount();
+
+    const saved = renderRow({ collectionIds: [3] });
+    expect(saved.container.querySelector('button svg')).toHaveAttribute('fill', 'currentColor');
   });
 
   it('mostra la durata solo quando è nota', () => {

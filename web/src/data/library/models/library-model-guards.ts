@@ -1,4 +1,12 @@
-import type { ChannelModel, ReleaseModel, TodayModel, VideoModel } from './library-models';
+import type {
+  ChannelModel,
+  CollectionDetailModel,
+  CollectionModel,
+  CollectionVideoModel,
+  ReleaseModel,
+  TodayModel,
+  VideoModel,
+} from './library-models';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
@@ -23,9 +31,8 @@ export const isVideoModel = (value: unknown): value is VideoModel =>
   typeof value.published_at === 'string' &&
   (value.duration_seconds === null || typeof value.duration_seconds === 'number') &&
   typeof value.status === 'string' &&
-  typeof value.queue_reason === 'string' &&
-  (value.queue_expires_at === null || typeof value.queue_expires_at === 'string') &&
-  typeof value.queue_days_left === 'number';
+  Array.isArray(value.collection_ids) &&
+  value.collection_ids.every((id) => typeof id === 'number');
 
 export const isVideoList = (value: unknown): value is { videos: VideoModel[] } =>
   isRecord(value) && Array.isArray(value.videos) && value.videos.every(isVideoModel);
@@ -35,3 +42,23 @@ export const isTodayModel = (value: unknown): value is TodayModel =>
 
 export const isReleaseModel = (value: unknown): value is ReleaseModel =>
   isRecord(value) && typeof value.released === 'number' && typeof value.discarded === 'number';
+
+export const isCollectionModel = (value: unknown): value is CollectionModel =>
+  isRecord(value) &&
+  typeof value.id === 'number' &&
+  typeof value.name === 'string' &&
+  typeof value.description === 'string' &&
+  typeof value.video_count === 'number' &&
+  (value.cover_video_id === null || typeof value.cover_video_id === 'string');
+
+export const isCollectionList = (value: unknown): value is { collections: CollectionModel[] } =>
+  isRecord(value) && Array.isArray(value.collections) && value.collections.every(isCollectionModel);
+
+const isCollectionVideoModel = (value: unknown): value is CollectionVideoModel =>
+  isVideoModel(value) && typeof (value as Record<string, unknown>).added_at === 'string';
+
+export const isCollectionDetailModel = (value: unknown): value is CollectionDetailModel =>
+  isRecord(value) &&
+  isCollectionModel(value.collection) &&
+  Array.isArray(value.videos) &&
+  value.videos.every(isCollectionVideoModel);

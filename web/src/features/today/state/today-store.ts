@@ -14,6 +14,9 @@ export type TodayState = {
   readonly notice: Message | null;
   readonly load: () => Promise<void>;
   readonly releaseNow: () => Promise<void>;
+  // Le raccolte di un video sono cambiate altrove (il pannello «Salva in»): la lista si
+  // aggiorna senza ricaricare, e il segnalibro si riempie o si svuota.
+  readonly setCollections: (videoId: string, collectionIds: readonly number[]) => void;
 };
 
 export type TodayStore = UseBoundStore<StoreApi<TodayState>>;
@@ -68,5 +71,12 @@ export function createTodayStore(
       });
       await get().load();
     },
+
+    setCollections: (videoId, collectionIds) =>
+      set({
+        videos: get().videos.map((video) =>
+          video.id === videoId ? { ...video, collectionIds } : video,
+        ),
+      }),
   }));
 }

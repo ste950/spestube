@@ -24,6 +24,9 @@ export function describeFailure(failure: Failure): Message {
       // Il server ha già scritto il perché nella lingua di chi usa l'app.
       return { text: failure.message };
     case 'parse':
+    case 'storage':
+      // Un dato illeggibile e uno storage rotto sono lo stesso fatto per chi guarda: non si
+      // può fare niente, e riprovare non cambia nulla.
       return { key: 'common_error_unexpected' };
     default:
       return assertNever(failure);

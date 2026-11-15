@@ -26,7 +26,7 @@ describe('la barra delle sezioni', () => {
   it('ha tre sezioni e nessuna quarta', () => {
     renderAt('/');
     const links = screen.getAllByRole('link').filter((link) => link.closest('nav') !== null);
-    expect(links.map((link) => link.textContent)).toEqual(['Oggi', 'Da vedere', 'Canali']);
+    expect(links.map((link) => link.textContent)).toEqual(['Oggi', 'Raccolte', 'Impostazioni']);
   });
 
   it('senza video non mostra nessun numero', () => {
@@ -35,7 +35,7 @@ describe('la barra delle sezioni', () => {
   });
 
   it('accanto a Oggi mostra quanti video ci sono, e lo dice anche a chi ascolta', () => {
-    renderAt('/canali');
+    renderAt('/impostazioni');
     act(() => setNavBadge('/', 2));
 
     const today = screen.getByRole('link', { name: 'Oggi, 2 nuovi' });
@@ -50,6 +50,20 @@ describe('la barra delle sezioni', () => {
   it('tiene accesa Oggi mentre si guarda un video', () => {
     renderAt('/guarda/abc');
     expect(screen.getByRole('link', { name: 'Oggi' })).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByRole('link', { name: 'Canali' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('link', { name: 'Raccolte' })).not.toHaveAttribute('aria-current');
+  });
+
+  it('tiene accesa Raccolte mentre si guarda un video aperto da una raccolta', () => {
+    renderAt('/guarda/abc?raccolta=4');
+    expect(screen.getByRole('link', { name: 'Raccolte' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'Oggi' })).not.toHaveAttribute('aria-current');
+  });
+
+  it.each([
+    ['/raccolte/4', 'Raccolte'],
+    ['/impostazioni/canali', 'Impostazioni'],
+  ])('sotto %s accende %s', (path, name) => {
+    renderAt(path);
+    expect(screen.getByRole('link', { name })).toHaveAttribute('aria-current', 'page');
   });
 });

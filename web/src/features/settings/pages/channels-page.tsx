@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
+import { Link } from 'react-router';
 import type { Channel } from '@domain/library/entities/channel';
+import { AppIcon } from '@shared/components/app-icon';
 import { AppMessage } from '@shared/components/app-message';
 import { AppPageHeader } from '@shared/components/app-page-header';
 import { AppSpinner } from '@shared/components/app-spinner';
@@ -39,6 +41,10 @@ export function ChannelsPage() {
   return (
     <section className={styles.page} aria-busy={isLoading}>
       <title>{`${t('channels_title')} · ${t('common_app_name')}`}</title>
+      <Link to="/impostazioni" className={styles.back}>
+        <AppIcon name="back" className={styles.backIcon} />
+        {t('channels_back')}
+      </Link>
       <AppPageHeader title={t('channels_title')} subtitle={t('channels_subtitle')} />
 
       {error !== null && <AppMessage tone="error" text={renderMessage(t, error)} />}

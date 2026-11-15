@@ -14,13 +14,12 @@ const video: Video = {
   publishedAt: new Date('2026-11-04T15:52:59Z'),
   durationSeconds: null,
   status: 'released',
-  queue: null,
+  collectionIds: [],
 };
 const nextReleaseAt = new Date('2026-11-16T06:00:00Z');
 
 const videos = (overrides: Partial<VideoRepository> = {}): VideoRepository => ({
   today: async () => ok({ videos: [video], nextReleaseAt }),
-  queue: async () => ok([]),
   getVideo: async () => ok(video),
   markWatched: async () => ok(video),
   releaseNow: async () => ok({ released: 3, discarded: 1 }),
@@ -136,6 +135,26 @@ describe('il numero dei video annunciato alla barra', () => {
 
     // Un errore di rete non dice che i video sono zero.
     expect(announced).toEqual([]);
+  });
+});
+
+describe('le raccolte di un video in Oggi', () => {
+  it('cambiano senza ricaricare, e il video resta in Oggi', async () => {
+    const other: Video = { ...video, id: 'v2' };
+    const store = createTodayStore(
+      videos({ today: async () => ok({ videos: [video, other], nextReleaseAt }) }),
+      settings(),
+      () => {},
+    );
+    await store.getState().load();
+
+    store.getState().setCollections('v1', [4]);
+    expect(store.getState().videos.map((v) => v.collectionIds)).toEqual([[4], []]);
+    store.getState().setCollections('v1', []);
+    expect(store.getState().videos[0]?.collectionIds).toEqual([]);
+    // Un video che non è in Oggi non cambia niente.
+    store.getState().setCollections('altrove', [1]);
+    expect(store.getState().videos).toHaveLength(2);
   });
 });
 

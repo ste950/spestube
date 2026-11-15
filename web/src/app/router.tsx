@@ -1,7 +1,7 @@
 import { createBrowserRouter } from 'react-router';
 import { basePath } from '@bootstrap/config';
-import { channelsRoutes } from '@features/channels/routes';
-import { queueRoutes } from '@features/queue/routes';
+import { collectionsRoutes } from '@features/collections/routes';
+import { settingsRoutes } from '@features/settings/routes';
 import { todayRoutes } from '@features/today/routes';
 import { watchRoutes } from '@features/watch/routes';
 import { AppLayout } from './layouts/app-layout';
@@ -18,8 +18,8 @@ export const router = createBrowserRouter(
         // Oggi è la pagina iniziale: l'app si apre su ciò che è arrivato, non su una vetrina.
         ...todayRoutes,
         ...watchRoutes,
-        ...queueRoutes,
-        ...channelsRoutes,
+        ...collectionsRoutes,
+        ...settingsRoutes,
         { path: '*', element: <NotFoundPage /> },
       ],
     },
