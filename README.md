@@ -37,7 +37,10 @@ nutri. SpesTube serve a scegliere cosa dare da mangiare alla testa.
    in **Oggi**. In fondo alla lista c'è scritto "Per oggi è tutto".
 4. Guardi un video in **Guarda**, con il player ufficiale su `youtube-nocookie.com`. Quando
    finisce, si ferma.
-5. Ciò che resta in Oggi viene archiviato al rilascio del giorno dopo.
+5. Un video che vuoi tenere lo salvi in una **raccolta** con il segnalibro: le raccolte le
+   crei tu, con un nome e una descrizione, e le ordini come vuoi.
+6. Ciò che resta in Oggi esce al rilascio del giorno dopo; quello che hai salvato resta
+   nelle raccolte.
 
 Quando aggiungi un canale entrano solo i suoi 3 video più recenti: gli arretrati restano
 fuori.
@@ -67,7 +70,7 @@ agli aggiornamenti dell'immagine.
 
 ### Il primo canale
 
-Vai in **Canali** e incolla il link del canale nella forma
+Vai in **Impostazioni**, poi **Canali**, e incolla il link del canale nella forma
 `https://www.youtube.com/channel/UC…`, oppure il suo id. L'id si trova sulla pagina del
 canale: *Condividi canale*, poi *Copia ID canale*.
 
@@ -154,16 +157,18 @@ cd web && npm test -- --run
   senza cgo). Il frontend compilato entra nel binario con `go:embed`: il risultato è un
   file solo.
 - `web/`: Vite, React e TypeScript, installabile come PWA.
-- `docs/design/`: le schermate di riferimento.
+- `docs/design/`: le schermate di riferimento, copia dell'artefatto di design su claude.ai
+  (si aggiorna con il comando `/sync-design` di Claude Code).
 - `ai/` e `CLAUDE.md`: le regole architetturali e i principi di prodotto per chi lavora
   al codice, persone e agenti AI.
 
 ## Stato del progetto
 
-Funzionano: canali, download dei feed, rilascio giornaliero, Oggi, Guarda.
+Funzionano: canali, download dei feed, rilascio giornaliero, Oggi, Guarda, raccolte e
+Impostazioni con il tema chiaro, scuro o automatico.
 
-In arrivo: ingresso in "Da vedere" con un motivo, note sui video, pannello dei filtri,
-durata dei video tramite API, import delle iscrizioni da Google Takeout.
+In arrivo: note sui video, filtri nelle Impostazioni, durata dei video tramite API, import
+delle iscrizioni da Google Takeout.
 
 ## Limiti noti
 
