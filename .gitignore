@@ -1,0 +1,37 @@
+# macOS
+.DS_Store
+
+# Editor
+.idea/
+.vscode/
+*.swp
+
+# Claude Code: impostazioni locali, non condivise
+.claude/settings.local.json
+
+# Configurazione locale: contiene la chiave API
+.env
+*.env
+!.env.example
+
+# Dati. Le barre iniziali contano: `data/` da solo ignorerebbe anche i livelli
+# `internal/data` e `src/data` del codice.
+/data/
+/backend/data/
+*.db
+*.db-shm
+*.db-wal
+
+# Backend Go
+backend/dist/
+backend/spestube
+# Il frontend compilato viene copiato qui dalla build; resta solo il segnaposto
+backend/internal/webui/dist/*
+!backend/internal/webui/dist/.gitkeep
+
+# Frontend
+node_modules/
+web/dist/
+web/dev-dist/
+web/coverage/
+*.tsbuildinfo

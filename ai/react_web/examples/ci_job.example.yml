@@ -1,0 +1,102 @@
+# Verifica del sito React su macchina pulita.
+#
+# E' la materializzazione per questo stack dello scheletro trasversale
+# (ci/examples/ci.example.yml): eventi, filtro sui path, concurrency e permessi restano
+# quelli e non si toccano. Qui dentro cambia solo cio' che dipende dallo stack: la
+# toolchain e i comandi di verifica.
+#
+# Se il repo contiene solo il sito, questo file e' .github/workflows/ci.yml. Se ne contiene
+# anche altri (un backend), questo e' il job `web` di quel workflow.
+#
+# Da adattare: niente, se il sito vive in `web/` come assume il framework.
+
+name: CI
+
+on:
+  pull_request:
+    branches: [develop]
+    # La documentazione non puo' rompere la build: non si accende il runner per un .md.
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - '.github/ISSUE_TEMPLATE/**'
+  # Rete di sicurezza: cattura cio' che entra in develop senza passare da una PR verde.
+  push:
+    branches: [develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # Tutti i comandi della regola di verifica si eseguono da `web/`: dichiararlo una
+    # volta qui evita un `cd` per step, che e' il modo in cui uno step finisce per girare
+    # nella cartella sbagliata.
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # La versione di Node la dichiara il progetto in un file del repo, e la action la
+      # legge da li'. Scriverla in questo workflow vorrebbe dire tenerne due, e diverge la
+      # prima volta che se ne alza una sola.
+      - name: Prepara Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: web/.nvmrc
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      # `npm ci` e' la differenza fra "macchina pulita" e "macchina che si arrangia":
+      # installa esattamente cio' che il file di lock dichiara e fallisce se il lock non e'
+      # allineato a package.json.
+      - name: Dipendenze
+        run: npm ci
+
+      # Gli stessi comandi di react_web/rules/verification.rule.md, con una sola differenza:
+      # in locale `prettier --write` corregge, qui non puo'. Una CI che riscrive il codice
+      # verificherebbe un sorgente diverso da quello della PR.
+      #
+      # Gli step restano separati anche se sarebbero una riga sola: quando la CI e' rossa,
+      # il nome dello step che ha fallito e' la meta' della diagnosi.
+      - name: Formattazione
+        run: npx prettier --check .
+
+      # Questo step non verifica lo stile: e' la garanzia dei confini fra livelli. La
+      # tabella delle dipendenze e' una regola di ESLint
+      # (react_web/examples/architecture_test.example.md), e senza questo step varrebbe solo
+      # per chi ha il linter acceso nell'editor.
+      - name: Lint e confini fra livelli
+        run: npx eslint .
+
+      # Il gemello del precedente per i fogli di stile: nessun colore, nessuna spaziatura e
+      # nessun punto di rottura scritti a mano fuori dai token.
+      - name: Fogli di stile
+        run: npx stylelint "src/**/*.css"
+
+      # `-b` e non `--noEmit`: la radice di tsconfig contiene solo riferimenti, e `--noEmit`
+      # lanciato li' controlla l'insieme vuoto ed esce verde.
+      - name: Analisi statica
+        run: npx tsc -b
+
+      # I test di architettura girano qui dentro, senza un comando dedicato e senza un
+      # marker che li escluda: sono test come gli altri
+      # (quality/rules/architecture_tests.rule.md).
+      - name: Test
+        run: npm test -- --run
+
+      # La build non controlla i tipi (lo ha fatto lo step precedente): dice che ogni modulo
+      # si risolve, che ogni import pigro ha il suo file e che il sito si costruisce davvero.
+      # Qui la build si butta: quella da pubblicare la fa il workflow di release, con le
+      # variabili `VITE_*` del suo ambiente (react_web/rules/configuration.rule.md).
+      - name: Build di verifica
+        run: npx vite build --outDir "$RUNNER_TEMP/web-dist"
