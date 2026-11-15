@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015" xmlns:media="http://search.yahoo.com/mrss/" xmlns="http://www.w3.org/2005/Atom">
+ <link rel="self" href="http://www.youtube.com/feeds/videos.xml?playlist_id=UULFHnyfMqiRRG1u-2MsSQLbXA"/>
+ <id>yt:playlist:UULFHnyfMqiRRG1u-2MsSQLbXA</id>
+ <yt:playlistId>UULFHnyfMqiRRG1u-2MsSQLbXA</yt:playlistId>
+ <yt:channelId>UCHnyfMqiRRG1u-2MsSQLbXA</yt:channelId>
+ <title>Videos</title>
+ <author>
+  <name>Veritasium</name>
+  <uri>https://www.youtube.com/channel/UCHnyfMqiRRG1u-2MsSQLbXA</uri>
+ </author>
+ <published>2021-10-13T07:10:08+00:00</published>
+ <entry>
+  <id>yt:video:KfODG5REyss</id>
+  <yt:videoId>KfODG5REyss</yt:videoId>
+  <yt:channelId>UCHnyfMqiRRG1u-2MsSQLbXA</yt:channelId>
+  <title>I finally saw quantum mechanics with my own eyes... (It's spookier than I expected)</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=KfODG5REyss"/>
+  <author>
+   <name>Veritasium</name>
+   <uri>https://www.youtube.com/channel/UCHnyfMqiRRG1u-2MsSQLbXA</uri>
+  </author>
+  <published>2026-11-04T15:52:59+00:00</published>
+  <updated>2026-11-15T12:02:55+00:00</updated>
+  <media:group>
+   <media:title>I finally saw quantum mechanics with my own eyes... (It's spookier than I expected)</media:title>
+   <media:content url="https://www.youtube.com/v/KfODG5REyss?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i4.ytimg.com/vi/KfODG5REyss/hqdefault.jpg" width="480" height="360"/>
+   <media:description>Descrizione accorciata per il test.</media:description>
+   <media:community>
+    <media:starRating count="201326" average="5.00" min="1" max="5"/>
+    <media:statistics views="19319702"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:eyZEqSPeMwg</id>
+  <yt:videoId>eyZEqSPeMwg</yt:videoId>
+  <yt:channelId>UCHnyfMqiRRG1u-2MsSQLbXA</yt:channelId>
+  <title>Relativity is so much weirder than we thought...</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=eyZEqSPeMwg"/>
+  <author>
+   <name>Veritasium</name>
+   <uri>https://www.youtube.com/channel/UCHnyfMqiRRG1u-2MsSQLbXA</uri>
+  </author>
+  <published>2026-10-23T18:46:44+00:00</published>
+  <updated>2026-11-12T22:48:27+00:00</updated>
+  <media:group>
+   <media:title>Relativity is so much weirder than we thought...</media:title>
+   <media:content url="https://www.youtube.com/v/eyZEqSPeMwg?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i2.ytimg.com/vi/eyZEqSPeMwg/hqdefault.jpg" width="480" height="360"/>
+   <media:description>Descrizione accorciata per il test.</media:description>
+   <media:community>
+    <media:starRating count="85086" average="5.00" min="1" max="5"/>
+    <media:statistics views="8256461"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:NiCgcUTL9_Q</id>
+  <yt:videoId>NiCgcUTL9_Q</yt:videoId>
+  <yt:channelId>UCHnyfMqiRRG1u-2MsSQLbXA</yt:channelId>
+  <title>Fiber Optics are so much cooler than I thought</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=NiCgcUTL9_Q"/>
+  <author>
+   <name>Veritasium</name>
+   <uri>https://www.youtube.com/channel/UCHnyfMqiRRG1u-2MsSQLbXA</uri>
+  </author>
+  <published>2026-10-12T17:11:45+00:00</published>
+  <updated>2026-11-03T11:33:19+00:00</updated>
+  <media:group>
+   <media:title>Fiber Optics are so much cooler than I thought</media:title>
+   <media:content url="https://www.youtube.com/v/NiCgcUTL9_Q?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i3.ytimg.com/vi/NiCgcUTL9_Q/hqdefault.jpg" width="480" height="360"/>
+   <media:description>Descrizione accorciata per il test.</media:description>
+   <media:community>
+    <media:starRating count="166529" average="5.00" min="1" max="5"/>
+    <media:statistics views="16326229"/>
+   </media:community>
+  </media:group>
+ </entry>
+</feed>
