@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SpesTube: il progetto</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#2557C7}a:hover{color:#1A3F94}
+</style>
+</head>
+<body>
+<div style="background: #F3F4F7; color: #15181F; font-family: Inter, system-ui, sans-serif; padding: 72px 24px 96px; box-sizing: border-box">
+<div style="max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 88px">
+
+<header style="display: flex; flex-direction: column; gap: 28px">
+<div style="display: flex; align-items: center; gap: 14px">
+<svg width="56" height="56" viewBox="0 0 48 48" fill="none" role="img" aria-label="Icona di SpesTube: un lupo"><rect width="48" height="48" rx="12" fill="#2557C7"></rect><path d="M12 6.5 C15 9 17.5 11.5 19 13.5 Q24 12 29 13.5 C30.5 11.5 33 9 36 6.5 C37.5 10.5 38 14 37.6 17 L41.5 20 L38.6 21.8 L42 25.5 L38.4 26.8 L40.5 31 L36.4 31.4 C34.5 35.5 30 39.5 26.5 41.5 Q24 42.6 21.5 41.5 C18 39.5 13.5 35.5 11.6 31.4 L7.5 31 L9.6 26.8 L6 25.5 L9.4 21.8 L6.5 20 L10.4 17 C10 14 10.5 10.5 12 6.5 Z" fill="#FFFFFF"></path><path d="M12.8 9.5 C14.5 11.5 16 13 16.8 14.6 L12.3 16 C12 13.5 12.2 11.5 12.8 9.5 Z" fill="#A9C4F5"></path><path d="M35.2 9.5 C33.5 11.5 32 13 31.2 14.6 L35.7 16 C36 13.5 35.8 11.5 35.2 9.5 Z" fill="#A9C4F5"></path><path d="M24 15.5 L22.4 21 Q24 22.2 25.6 21 Z" fill="#DCE4F7"></path><path d="M21.6 25.6 Q24 24.6 26.4 25.6 L28.8 33.6 Q24 37.8 19.2 33.6 Z" fill="#DCE4F7"></path><path d="M13.8 19.8 Q18.6 19.2 22.2 22.6" stroke="#1A3F94" stroke-width="1.3" stroke-linecap="round"></path><path d="M34.2 19.8 Q29.4 19.2 25.8 22.6" stroke="#1A3F94" stroke-width="1.3" stroke-linecap="round"></path><path d="M14.6 22.4 Q18.6 21.8 21.6 24.4 Q18.6 26.1 15.6 24.7 Z" fill="#1A3F94"></path><path d="M33.4 22.4 Q29.4 21.8 26.4 24.4 Q29.4 26.1 32.4 24.7 Z" fill="#1A3F94"></path><path d="M11.2 27.2 Q14.6 29 16.6 32.2" stroke="#C9D7F5" stroke-width="1.1" stroke-linecap="round"></path><path d="M36.8 27.2 Q33.4 29 31.4 32.2" stroke="#C9D7F5" stroke-width="1.1" stroke-linecap="round"></path><path d="M20.8 32.2 Q24 31 27.2 32.2 Q26.6 35 24 35.8 Q21.4 35 20.8 32.2 Z" fill="#1A3F94"></path><path d="M24 35.8 L24 37.3 M21.6 37.9 Q24 39.2 26.4 37.9" stroke="#1A3F94" stroke-width="1.1" stroke-linecap="round"></path></svg>
+<span style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 28px; letter-spacing: -0.5px">SpesTube</span>
+</div>
+<h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 64px; line-height: 1.05; letter-spacing: -1.5px; max-width: 860px">YouTube, solo quello che hai scelto di guardare.</h1>
+<p style="margin: 0; font-size: 20px; line-height: 1.55; color: #4A5160; max-width: 760px">SpesTube è un client personale e self-hosted per YouTube. Toglie tutto ciò che è progettato per trattenerti (consigliati, autoplay, Shorts, scroll infinito) e lascia il valore vero: i canali che segui, il player, le cose che impari.</p>
+<div style="display: flex; flex-wrap: wrap; gap: 10px">
+<span style="padding: 8px 14px; border-radius: 999px; background: #E4ECFB; color: #1A3F94; font-size: 14px; font-weight: 500">Self-hosted su Raspberry Pi</span>
+<span style="padding: 8px 14px; border-radius: 999px; background: #E4ECFB; color: #1A3F94; font-size: 14px; font-weight: 500">PWA per iPhone</span>
+<span style="padding: 8px 14px; border-radius: 999px; background: #E4ECFB; color: #1A3F94; font-size: 14px; font-weight: 500">Open source</span>
+<span style="padding: 8px 14px; border-radius: 999px; background: #E4ECFB; color: #1A3F94; font-size: 14px; font-weight: 500">Costo zero</span>
+</div>
+<p style="margin: 0; font-size: 15px; line-height: 1.55; color: #4A5160; max-width: 760px; border-left: 0; padding-top: 4px"><strong style="color: #15181F; font-weight: 600">Perché SpesTube.</strong> <em>Spes</em> in latino è la speranza. In ognuno di noi combattono due lupi, uno fatto di paura e uno di speranza: vince quello che nutri. SpesTube serve a scegliere cosa dare da mangiare alla testa.</p>
+</header>
+
+<section style="display: flex; flex-direction: column; gap: 28px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 13px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: #2557C7">Il problema</span>
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 36px; letter-spacing: -0.6px">YouTube toglie i punti di fine. SpesTube li rimette.</h2>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #DCE0E8; border-radius: 16px; overflow: hidden">
+<div style="display: flex; flex-wrap: wrap; padding: 14px 24px; background: #EAECF1; font-size: 13px; font-weight: 600; color: #4A5160; gap: 16px">
+<span style="flex: 1 1 300px">Meccanismo di YouTube</span>
+<span style="flex: 1 1 300px">In SpesTube</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; padding: 16px 24px; border-top: 1px solid #E6E9EF; gap: 4px 16px; font-size: 16px; line-height: 1.45">
+<span style="flex: 1 1 300px; color: #4A5160">Consigliati dall'algoritmo</span>
+<span style="flex: 1 1 300px; font-weight: 500">Solo i canali che scegli tu</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; padding: 16px 24px; border-top: 1px solid #E6E9EF; gap: 4px 16px; font-size: 16px; line-height: 1.45">
+<span style="flex: 1 1 300px; color: #4A5160">Autoplay e "prossimo video" con conto alla rovescia</span>
+<span style="flex: 1 1 300px; font-weight: 500">Alla fine il video si ferma</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; padding: 16px 24px; border-top: 1px solid #E6E9EF; gap: 4px 16px; font-size: 16px; line-height: 1.45">
+<span style="flex: 1 1 300px; color: #4A5160">Scroll infinito e feed che si rinnova</span>
+<span style="flex: 1 1 300px; font-weight: 500">Il feed finisce: i nuovi video arrivano una volta al giorno</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; padding: 16px 24px; border-top: 1px solid #E6E9EF; gap: 4px 16px; font-size: 16px; line-height: 1.45">
+<span style="flex: 1 1 300px; color: #4A5160">Shorts</span>
+<span style="flex: 1 1 300px; font-weight: 500">Esclusi del tutto</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; padding: 16px 24px; border-top: 1px solid #E6E9EF; gap: 4px 16px; font-size: 16px; line-height: 1.45">
+<span style="flex: 1 1 300px; color: #4A5160">Miniature e titoli clickbait</span>
+<span style="flex: 1 1 300px; font-weight: 500">Miniature in bianco e nero o nascoste, titoli riscrivibili</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; padding: 16px 24px; border-top: 1px solid #E6E9EF; gap: 4px 16px; font-size: 16px; line-height: 1.45">
+<span style="flex: 1 1 300px; color: #4A5160">Suggerimenti laterali e schermate finali</span>
+<span style="flex: 1 1 300px; font-weight: 500">Solo il player</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; padding: 16px 24px; border-top: 1px solid #E6E9EF; gap: 4px 16px; font-size: 16px; line-height: 1.45">
+<span style="flex: 1 1 300px; color: #4A5160">Notifiche, campanella e badge rossi</span>
+<span style="flex: 1 1 300px; font-weight: 500">Al massimo un riepilogo, quando decidi tu</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; padding: 16px 24px; border-top: 1px solid #E6E9EF; gap: 4px 16px; font-size: 16px; line-height: 1.45">
+<span style="flex: 1 1 300px; color: #4A5160">Contatori di visualizzazioni e like</span>
+<span style="flex: 1 1 300px; font-weight: 500">Nascosti</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; padding: 16px 24px; border-top: 1px solid #E6E9EF; gap: 4px 16px; font-size: 16px; line-height: 1.45">
+<span style="flex: 1 1 300px; color: #4A5160">Dirette e Premiere</span>
+<span style="flex: 1 1 300px; font-weight: 500">In coda come video normali, oppure escluse</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; padding: 16px 24px; border-top: 1px solid #E6E9EF; gap: 4px 16px; font-size: 16px; line-height: 1.45">
+<span style="flex: 1 1 300px; color: #4A5160">Home personalizzata all'apertura</span>
+<span style="flex: 1 1 300px; font-weight: 500">Si apre sulla tua coda di oggi</span>
+</div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 28px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 13px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: #2557C7">Principi</span>
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 36px; letter-spacing: -0.6px">Attrito dove serve, valore dove c'è.</h2>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px">
+<div style="background: #FFFFFF; border: 1px solid #DCE0E8; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 21px; font-weight: 600">Scegli tu</h3>
+<p style="margin: 0; font-size: 15px; line-height: 1.55; color: #4A5160">Nessun algoritmo: entrano solo i video dei canali che aggiungi.</p>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #DCE0E8; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 21px; font-weight: 600">Il feed finisce</h3>
+<p style="margin: 0; font-size: 15px; line-height: 1.55; color: #4A5160">I video nuovi arrivano in blocco una volta al giorno. Quando hai finito, hai finito.</p>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #DCE0E8; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 21px; font-weight: 600">Niente autoplay</h3>
+<p style="margin: 0; font-size: 15px; line-height: 1.55; color: #4A5160">Ogni video termina con uno stop. Il passo successivo lo decidi tu.</p>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #DCE0E8; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 21px; font-weight: 600">Ogni video ha un motivo</h3>
+<p style="margin: 0; font-size: 15px; line-height: 1.55; color: #4A5160">In "Da vedere" si entra con un perché. Se resta lì 14 giorni, sparisce da solo.</p>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #DCE0E8; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 21px; font-weight: 600">Meno esche</h3>
+<p style="margin: 0; font-size: 15px; line-height: 1.55; color: #4A5160">Miniature neutre, contatori nascosti, titoli che puoi accorciare o riscrivere.</p>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #DCE0E8; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 21px; font-weight: 600">Il valore resta</h3>
+<p style="margin: 0; font-size: 15px; line-height: 1.55; color: #4A5160">Note sui video, organizzazione per argomento e un riepilogo settimanale di cosa hai imparato.</p>
+</div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 28px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 13px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: #2557C7">Come funziona</span>
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 36px; letter-spacing: -0.6px">I video restano su YouTube. SpesTube sceglie quali mostrarti.</h2>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: stretch; gap: 12px">
+<div style="flex: 1 1 150px; background: #FFFFFF; border: 1px solid #DCE0E8; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 12px; font-weight: 600; color: #2557C7">1</span>
+<span style="font-family: 'Space Grotesk', sans-serif; font-size: 17px; font-weight: 600">Feed RSS</span>
+<span style="font-size: 14px; line-height: 1.45; color: #4A5160">Un videos.xml per canale, gratis e senza quota</span>
+</div>
+<div style="flex: 1 1 150px; background: #FFFFFF; border: 1px solid #DCE0E8; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 12px; font-weight: 600; color: #2557C7">2</span>
+<span style="font-family: 'Space Grotesk', sans-serif; font-size: 17px; font-weight: 600">Backend Go</span>
+<span style="font-size: 14px; line-height: 1.45; color: #4A5160">Sul Raspberry Pi, legge i feed ogni ora</span>
+</div>
+<div style="flex: 1 1 150px; background: #FFFFFF; border: 1px solid #DCE0E8; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 12px; font-weight: 600; color: #2557C7">3</span>
+<span style="font-family: 'Space Grotesk', sans-serif; font-size: 17px; font-weight: 600">Filtri</span>
+<span style="font-size: 14px; line-height: 1.45; color: #4A5160">Shorts esclusi con la playlist UULF, durata, parole chiave, LLM opzionale</span>
+</div>
+<div style="flex: 1 1 150px; background: #FFFFFF; border: 1px solid #DCE0E8; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 12px; font-weight: 600; color: #2557C7">4</span>
+<span style="font-family: 'Space Grotesk', sans-serif; font-size: 17px; font-weight: 600">SQLite</span>
+<span style="font-size: 14px; line-height: 1.45; color: #4A5160">Canali, video, coda e note</span>
+</div>
+<div style="flex: 1 1 150px; background: #FFFFFF; border: 1px solid #DCE0E8; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 12px; font-weight: 600; color: #2557C7">5</span>
+<span style="font-family: 'Space Grotesk', sans-serif; font-size: 17px; font-weight: 600">PWA React</span>
+<span style="font-size: 14px; line-height: 1.45; color: #4A5160">Oggi, Da vedere, Canali: installabile su iPhone</span>
+</div>
+<div style="flex: 1 1 150px; background: #FFFFFF; border: 1px solid #DCE0E8; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 12px; font-weight: 600; color: #2557C7">6</span>
+<span style="font-family: 'Space Grotesk', sans-serif; font-size: 17px; font-weight: 600">Player ufficiale</span>
+<span style="font-size: 14px; line-height: 1.45; color: #4A5160">IFrame embed su youtube-nocookie.com</span>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px">
+<div style="background: #E4ECFB; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 10px">
+<h3 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 19px; font-weight: 600; color: #1A3F94">Costo zero</h3>
+<p style="margin: 0; font-size: 15px; line-height: 1.55; color: #1D3A7A">Feed RSS gratuiti, quota gratuita della YouTube Data API per durata e dettagli, player embed gratuito, hosting sul Raspberry Pi di casa.</p>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #DCE0E8; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 10px">
+<h3 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 19px; font-weight: 600">Accesso da fuori</h3>
+<p style="margin: 0; font-size: 15px; line-height: 1.55; color: #4A5160">Dietro Authelia come gli altri servizi del Pi, oppure via Tailscale.</p>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #DCE0E8; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 10px">
+<h3 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 19px; font-weight: 600">Limiti noti</h3>
+<p style="margin: 0; font-size: 15px; line-height: 1.55; color: #4A5160">L'RSS dà solo gli ultimi 15 video per canale. La ricerca su tutto YouTube consuma molta quota. Commenti e trascrizioni restano fuori.</p>
+</div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 28px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 13px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: #2557C7">Perimetro</span>
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 36px; letter-spacing: -0.6px">Prima usarla, poi aggiungere.</h2>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 16px">
+<div style="flex: 1 1 380px; background: #FFFFFF; border: 1px solid #DCE0E8; border-radius: 16px; padding: 28px; display: flex; flex-direction: column; gap: 14px">
+<h3 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 21px; font-weight: 600">Prima versione</h3>
+<ul style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.5">
+<li>Feed "Oggi" con arrivo giornaliero e una fine</li>
+<li>Coda "Da vedere" con motivo e scadenza a 14 giorni</li>
+<li>Player embed senza autoplay né suggerimenti</li>
+<li>Note per ogni video</li>
+<li>Gestione canali e import delle iscrizioni da Google Takeout</li>
+<li>Filtri: Shorts, dirette, durata minima, parole chiave</li>
+</ul>
+</div>
+<div style="flex: 1 1 380px; background: #EAECF1; border-radius: 16px; padding: 28px; display: flex; flex-direction: column; gap: 14px">
+<h3 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 21px; font-weight: 600">Dopo qualche settimana d'uso</h3>
+<ul style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.5; color: #3A4150">
+<li>Filtro intelligente via gateway LLM</li>
+<li>Raccolte per argomento invece che per canale</li>
+<li>Riepilogo settimanale di cosa hai guardato e perché</li>
+<li>Notifiche di riepilogo</li>
+<li>Icona nel desktop di pi os</li>
+</ul>
+</div>
+</div>
+</section>
+
+<footer style="border-top: 1px solid #DCE0E8; padding-top: 28px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-size: 14px; color: #4A5160">
+<span>SpesTube · open source · licenza da decidere (MIT o AGPL)</span>
+<span>Client indipendente, non affiliato a YouTube</span>
+</footer>
+
+</div>
+</div>
+</body>
+</html>
