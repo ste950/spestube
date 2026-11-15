@@ -1,6 +1,7 @@
 package library
 
 import (
+	"strings"
 	"testing"
 	"time"
 )
@@ -54,79 +55,8 @@ func TestRelease(t *testing.T) {
 	}
 }
 
-func TestEnqueue(t *testing.T) {
-	cases := []struct {
-		name     string
-		status   Status
-		reason   string
-		wantCode string
-	}{
-		{"da Oggi con un motivo", StatusReleased, "mi serve per l'orto", ""},
-		{"da archiviato torna in coda", StatusArchived, "ci ripenso", ""},
-		{"senza motivo", StatusReleased, "", "queue_reason_required"},
-		{"motivo di soli spazi", StatusReleased, "  \n ", "queue_reason_required"},
-		{"video non ancora rilasciato", StatusNew, "curiosità", "video_not_queueable"},
-		{"video scartato", StatusDiscarded, "curiosità", "video_not_queueable"},
-		{"già in coda", StatusQueued, "di nuovo", "video_not_queueable"},
-	}
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			got, err := Video{ID: "a", Status: tc.status, ArchivedAt: t0.Add(-time.Hour)}.Enqueue(tc.reason, t0)
-			if code := codeOf(err); code != tc.wantCode {
-				t.Fatalf("codice = %q, atteso %q", code, tc.wantCode)
-			}
-			if err != nil {
-				return
-			}
-			if got.Status != StatusQueued || got.QueueReason != tc.reason || !got.QueuedAt.Equal(t0) || !got.ArchivedAt.IsZero() {
-				t.Errorf("in coda: %+v", got)
-			}
-		})
-	}
-}
-
-func TestEnqueueTrimsTheReason(t *testing.T) {
-	got, err := Video{Status: StatusReleased}.Enqueue("  per il weekend ", t0)
-	if err != nil || got.QueueReason != "per il weekend" {
-		t.Errorf("motivo = %q, err = %v", got.QueueReason, err)
-	}
-}
-
-func TestQueueExpiry(t *testing.T) {
-	queued := Video{Status: StatusQueued, QueuedAt: t0}
-	day := 24 * time.Hour
-	if want := t0.Add(14 * day); !queued.QueueExpiresAt().Equal(want) {
-		t.Errorf("scadenza = %v, attesa %v", queued.QueueExpiresAt(), want)
-	}
-	cases := []struct {
-		name string
-		now  time.Time
-		want int
-	}{
-		{"appena entrato", t0, 14},
-		{"dopo un secondo ne restano ancora 14", t0.Add(time.Second), 14},
-		{"dopo tre giorni", t0.Add(3 * day), 11},
-		{"a trenta ore dalla scadenza", t0.Add(14*day - 30*time.Hour), 2},
-		{"a tre ore dalla scadenza: scade domani", t0.Add(14*day - 3*time.Hour), 1},
-		{"alla scadenza", t0.Add(14 * day), 0},
-		{"oltre la scadenza", t0.Add(20 * day), 0},
-	}
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			if got := queued.QueueDaysLeft(tc.now); got != tc.want {
-				t.Errorf("giorni rimasti = %d, attesi %d", got, tc.want)
-			}
-		})
-	}
-
-	notQueued := Video{Status: StatusReleased, QueuedAt: t0}
-	if !notQueued.QueueExpiresAt().IsZero() || notQueued.QueueDaysLeft(t0) != 0 {
-		t.Error("un video non in coda non ha scadenza")
-	}
-}
-
 func TestMarkWatchedAndDiscard(t *testing.T) {
-	for _, s := range []Status{StatusReleased, StatusQueued, StatusArchived} {
+	for _, s := range []Status{StatusReleased, StatusArchived} {
 		got, err := Video{Status: s}.MarkWatched(t0)
 		if err != nil || got.Status != StatusWatched || !got.WatchedAt.Equal(t0) {
 			t.Errorf("visto da %s: %+v, %v", s, got, err)
@@ -153,11 +83,68 @@ func TestMarkWatchedAndDiscard(t *testing.T) {
 func TestPlayable(t *testing.T) {
 	want := map[Status]bool{
 		StatusNew: false, StatusDiscarded: false,
-		StatusReleased: true, StatusQueued: true, StatusWatched: true, StatusArchived: true,
+		StatusReleased: true, StatusWatched: true, StatusArchived: true,
 	}
 	for s, playable := range want {
 		if got := (Video{Status: s}).Playable(); got != playable {
 			t.Errorf("Playable(%s) = %v, atteso %v", s, got, playable)
 		}
+	}
+}
+
+func TestNewCollectionFields(t *testing.T) {
+	long := strings.Repeat("a", CollectionNameMax+1)
+	cases := []struct {
+		name, inName, inDesc string
+		want                 CollectionFields
+		wantCode             string
+	}{
+		{"nome e descrizione", "Orto", "  idee per la primavera  ", CollectionFields{"Orto", "idee per la primavera"}, ""},
+		{"spazi interni ridotti a uno", "  Cucina   lenta ", "", CollectionFields{"Cucina lenta", ""}, ""},
+		{"nome lungo al limite", strings.Repeat("à", CollectionNameMax), "", CollectionFields{strings.Repeat("à", CollectionNameMax), ""}, ""},
+		{"nome vuoto", "   ", "", CollectionFields{}, "collection_name_required"},
+		{"nome troppo lungo", long, "", CollectionFields{}, "collection_name_too_long"},
+		{"descrizione troppo lunga", "Orto", strings.Repeat("x", CollectionDescriptionMax+1), CollectionFields{}, "collection_description_too_long"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := NewCollectionFields(tc.inName, tc.inDesc)
+			if code := codeOf(err); code != tc.wantCode {
+				t.Fatalf("codice = %q, atteso %q", code, tc.wantCode)
+			}
+			if got != tc.want {
+				t.Errorf("campi = %+v, attesi %+v", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestCheckOrder(t *testing.T) {
+	current := []int64{1, 2, 3}
+	cases := []struct {
+		name   string
+		wanted []int64
+		ok     bool
+	}{
+		{"stesso ordine", []int64{1, 2, 3}, true},
+		{"riordinate", []int64{3, 1, 2}, true},
+		{"ne manca una", []int64{3, 1}, false},
+		{"una di troppo", []int64{3, 1, 2, 4}, false},
+		{"una sconosciuta", []int64{3, 1, 4}, false},
+		{"una ripetuta", []int64{1, 1, 2}, false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := CheckOrder(current, tc.wanted)
+			if (err == nil) != tc.ok {
+				t.Errorf("CheckOrder(%v) = %v", tc.wanted, err)
+			}
+			if err != nil && codeOf(err) != "collection_order_invalid" {
+				t.Errorf("codice = %q", codeOf(err))
+			}
+		})
+	}
+	if err := CheckOrder(nil, nil); err != nil {
+		t.Errorf("nessuna raccolta: %v", err)
 	}
 }

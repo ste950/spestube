@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/ste950/spestube/backend/internal/api/channels"
+	"github.com/ste950/spestube/backend/internal/api/collections"
 	"github.com/ste950/spestube/backend/internal/api/dev"
 	"github.com/ste950/spestube/backend/internal/api/meta"
 	apisettings "github.com/ste950/spestube/backend/internal/api/settings"
@@ -20,10 +21,10 @@ import (
 
 // Services è ciò di cui le risorse hanno bisogno: lo riempie il composition root.
 type Services struct {
-	Library  *library.Service
-	Settings *settings.Service
-	Meta     meta.Info
-	Now      func() time.Time
+	Library     *library.Service
+	Collections *library.Collections
+	Settings    *settings.Service
+	Meta        meta.Info
 	// Ping risponde nil se il database è raggiungibile: è ciò che /healthz verifica.
 	Ping func(context.Context) error
 	// Static serve il frontend compilato a tutto ciò che non è /api/ né /healthz.
@@ -41,7 +42,8 @@ func Routes(s Services) http.Handler {
 	})
 
 	channels.NewHandler(s.Library).Register(mux)
-	videos.NewHandler(s.Library, s.Now).Register(mux)
+	videos.NewHandler(s.Library).Register(mux)
+	collections.NewHandler(s.Collections).Register(mux)
 	apisettings.NewHandler(s.Settings).Register(mux)
 	meta.NewHandler(s.Meta).Register(mux)
 	if s.Meta.Dev {

@@ -5,6 +5,7 @@ package librarytest
 import (
 	"context"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/ste950/spestube/backend/internal/core/apperr"
@@ -106,10 +107,6 @@ func (v *Videos) ListReleased(context.Context) ([]library.Video, error) {
 	return v.filter(func(x library.Video) bool { return x.Status == library.StatusReleased }), nil
 }
 
-func (v *Videos) ListQueued(context.Context) ([]library.Video, error) {
-	return v.filter(func(x library.Video) bool { return x.Status == library.StatusQueued }), nil
-}
-
 func (v *Videos) ListNewFetchedBefore(_ context.Context, cutoff time.Time) ([]library.Video, error) {
 	return v.filter(func(x library.Video) bool {
 		return x.Status == library.StatusNew && x.FetchedAt.Before(cutoff)
@@ -127,12 +124,6 @@ func (v *Videos) Save(_ context.Context, x library.Video) error {
 func (v *Videos) ArchiveReleasedBefore(_ context.Context, cutoff, at time.Time) (int, error) {
 	return v.archive(at, func(x library.Video) bool {
 		return x.Status == library.StatusReleased && x.ReleasedAt.Before(cutoff)
-	}), nil
-}
-
-func (v *Videos) ArchiveQueuedBefore(_ context.Context, cutoff, at time.Time) (int, error) {
-	return v.archive(at, func(x library.Video) bool {
-		return x.Status == library.StatusQueued && !x.QueuedAt.After(cutoff)
 	}), nil
 }
 
@@ -205,4 +196,147 @@ type Policy library.Policy
 
 func (p Policy) Policy(context.Context) (library.Policy, error) {
 	return library.Policy(p), nil
+}
+
+// Collections è l'archivio delle raccolte in memoria. Le posizioni seguono l'ordine della
+// lista; i video li legge da Videos, come farebbe la join del database.
+type Collections struct {
+	Items []library.Collection
+	Store *Videos // dove vivono i video, per la loro forma e le loro raccolte
+	// Members[id raccolta] sono i video, nell'ordine di ingresso.
+	Members map[int64][]library.CollectionVideo
+	nextID  int64
+}
+
+func NewCollections(videos *Videos, items ...library.Collection) *Collections {
+	c := &Collections{Store: videos, Members: map[int64][]library.CollectionVideo{}}
+	for _, it := range items {
+		c.Items = append(c.Items, it)
+		c.nextID = max(c.nextID, it.ID)
+	}
+	return c
+}
+
+func (c *Collections) List(context.Context) ([]library.Collection, error) {
+	out := make([]library.Collection, 0, len(c.Items))
+	for _, it := range c.Items {
+		out = append(out, c.withCounts(it))
+	}
+	return out, nil
+}
+
+func (c *Collections) Get(_ context.Context, id int64) (library.Collection, error) {
+	for _, it := range c.Items {
+		if it.ID == id {
+			return c.withCounts(it), nil
+		}
+	}
+	return library.Collection{}, apperr.NotFound("collection_not_found", "raccolta inesistente")
+}
+
+func (c *Collections) FindByName(_ context.Context, name string) (library.Collection, bool, error) {
+	for _, it := range c.Items {
+		if strings.EqualFold(it.Name, name) {
+			return c.withCounts(it), true, nil
+		}
+	}
+	return library.Collection{}, false, nil
+}
+
+func (c *Collections) Create(_ context.Context, f library.CollectionFields, at time.Time) (int64, error) {
+	c.nextID++
+	c.Items = append(c.Items, library.Collection{
+		ID: c.nextID, Name: f.Name, Description: f.Description, Position: len(c.Items),
+		CreatedAt: at, UpdatedAt: at,
+	})
+	return c.nextID, nil
+}
+
+func (c *Collections) Update(_ context.Context, id int64, f library.CollectionFields, at time.Time) error {
+	for i, it := range c.Items {
+		if it.ID == id {
+			c.Items[i].Name, c.Items[i].Description, c.Items[i].UpdatedAt = f.Name, f.Description, at
+			return nil
+		}
+	}
+	return apperr.NotFound("collection_not_found", "raccolta inesistente")
+}
+
+func (c *Collections) Delete(_ context.Context, id int64) error {
+	for i, it := range c.Items {
+		if it.ID == id {
+			c.Items = append(c.Items[:i], c.Items[i+1:]...)
+			delete(c.Members, id)
+			return nil
+		}
+	}
+	return apperr.NotFound("collection_not_found", "raccolta inesistente")
+}
+
+func (c *Collections) SetOrder(_ context.Context, ids []int64, at time.Time) error {
+	byID := map[int64]library.Collection{}
+	for _, it := range c.Items {
+		byID[it.ID] = it
+	}
+	ordered := make([]library.Collection, 0, len(ids))
+	for pos, id := range ids {
+		it := byID[id]
+		it.Position, it.UpdatedAt = pos, at
+		ordered = append(ordered, it)
+	}
+	c.Items = ordered
+	return nil
+}
+
+func (c *Collections) Videos(_ context.Context, id int64) ([]library.CollectionVideo, error) {
+	members := c.Members[id]
+	out := make([]library.CollectionVideo, 0, len(members))
+	for i := len(members) - 1; i >= 0; i-- {
+		out = append(out, members[i])
+	}
+	return out, nil
+}
+
+func (c *Collections) AddVideo(_ context.Context, collectionID int64, videoID string, at time.Time) error {
+	for _, m := range c.Members[collectionID] {
+		if m.ID == videoID {
+			return nil
+		}
+	}
+	v := c.Store.ByID[videoID]
+	c.Members[collectionID] = append(c.Members[collectionID], library.CollectionVideo{Video: v, AddedAt: at})
+	v.CollectionIDs = append(v.CollectionIDs, collectionID)
+	c.Store.ByID[videoID] = v
+	return nil
+}
+
+func (c *Collections) RemoveVideo(_ context.Context, collectionID int64, videoID string) error {
+	members := c.Members[collectionID]
+	for i, m := range members {
+		if m.ID == videoID {
+			c.Members[collectionID] = append(members[:i], members[i+1:]...)
+		}
+	}
+	v, ok := c.Store.ByID[videoID]
+	if ok {
+		kept := v.CollectionIDs[:0]
+		for _, id := range v.CollectionIDs {
+			if id != collectionID {
+				kept = append(kept, id)
+			}
+		}
+		v.CollectionIDs = kept
+		c.Store.ByID[videoID] = v
+	}
+	return nil
+}
+
+func (c *Collections) withCounts(it library.Collection) library.Collection {
+	members := c.Members[it.ID]
+	it.VideoCount = len(members)
+	it.CoverVideoID = ""
+	if len(members) > 0 {
+		it.CoverVideoID = members[len(members)-1].ID
+	}
+	return it
 }

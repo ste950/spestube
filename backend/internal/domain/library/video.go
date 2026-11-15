@@ -1,7 +1,6 @@
 package library
 
 import (
-	"strings"
 	"time"
 
 	"github.com/ste950/spestube/backend/internal/core/apperr"
@@ -13,15 +12,14 @@ type Status string
 const (
 	StatusNew       Status = "new"       // scaricato, non ancora visibile
 	StatusReleased  Status = "released"  // visibile in Oggi
-	StatusQueued    Status = "queued"    // in Da vedere, con un motivo
 	StatusWatched   Status = "watched"   // visto
 	StatusDiscarded Status = "discarded" // scartato, da un filtro o dall'utente
-	StatusArchived  Status = "archived"  // uscito di scena da solo
+	StatusArchived  Status = "archived"  // uscito da Oggi senza essere visto
 )
 
 func (s Status) Valid() bool {
 	switch s {
-	case StatusNew, StatusReleased, StatusQueued, StatusWatched, StatusDiscarded, StatusArchived:
+	case StatusNew, StatusReleased, StatusWatched, StatusDiscarded, StatusArchived:
 		return true
 	}
 	return false
@@ -48,11 +46,6 @@ func (r DiscardReason) Valid() bool {
 	return false
 }
 
-// QueueLifetime è quanto un video resta in Da vedere prima di essere archiviato da solo.
-// Due settimane: abbastanza per un weekend libero, troppo poco per accumulare una lista
-// che non si guarderà mai.
-const QueueLifetime = 14 * 24 * time.Hour
-
 type Video struct {
 	ID           string
 	ChannelID    string
@@ -66,10 +59,12 @@ type Video struct {
 	Status       Status
 	Discard      DiscardReason
 	ReleasedAt   time.Time
-	QueueReason  string
-	QueuedAt     time.Time
 	WatchedAt    time.Time
 	ArchivedAt   time.Time
+	// CollectionIDs sono le raccolte che contengono il video, in sola lettura. L'appartenenza
+	// a una raccolta non dipende dallo stato: un video salvato resta salvato anche quando
+	// esce da Oggi.
+	CollectionIDs []int64
 }
 
 // Release decide la sorte di un video nuovo al momento del rilascio: visibile in Oggi,
@@ -85,26 +80,9 @@ func (v Video) Release(now time.Time, f Filters) Video {
 	return v
 }
 
-// Enqueue mette il video in Da vedere. Il motivo è obbligatorio: è l'attrito voluto che
-// distingue "mi serve" da "lo salvo, non si sa mai".
-func (v Video) Enqueue(reason string, now time.Time) (Video, error) {
-	reason = strings.TrimSpace(reason)
-	if reason == "" {
-		return Video{}, apperr.Invalid("queue_reason_required", "per mettere un video in Da vedere serve un motivo")
-	}
-	if v.Status != StatusReleased && v.Status != StatusArchived {
-		return Video{}, apperr.Conflict("video_not_queueable", "questo video non può entrare in Da vedere")
-	}
-	v.Status = StatusQueued
-	v.QueueReason = reason
-	v.QueuedAt = now
-	v.ArchivedAt = time.Time{}
-	return v, nil
-}
-
 func (v Video) MarkWatched(now time.Time) (Video, error) {
 	switch v.Status {
-	case StatusReleased, StatusQueued, StatusArchived:
+	case StatusReleased, StatusArchived:
 		v.Status = StatusWatched
 		v.WatchedAt = now
 		return v, nil
@@ -115,7 +93,7 @@ func (v Video) MarkWatched(now time.Time) (Video, error) {
 }
 
 func (v Video) DiscardByUser() (Video, error) {
-	if v.Status != StatusReleased && v.Status != StatusQueued {
+	if v.Status != StatusReleased {
 		return Video{}, apperr.Conflict("video_not_discardable", "questo video non si può scartare")
 	}
 	v.Status = StatusDiscarded
@@ -123,31 +101,13 @@ func (v Video) DiscardByUser() (Video, error) {
 	return v, nil
 }
 
-// Playable riporta se il video si può aprire in Guarda. Un video nuovo o scartato non è
-// mai stato mostrato, e conoscerne l'id non deve bastare a vederlo prima del rilascio.
+// Playable riporta se il video si può aprire in Guarda e salvare in una raccolta. Un video
+// nuovo o scartato non è mai stato mostrato, e conoscerne l'id non deve bastare a vederlo
+// prima del rilascio.
 func (v Video) Playable() bool {
 	switch v.Status {
-	case StatusReleased, StatusQueued, StatusWatched, StatusArchived:
+	case StatusReleased, StatusWatched, StatusArchived:
 		return true
 	}
 	return false
-}
-
-// QueueExpiresAt è l'istante in cui il video in coda viene archiviato. Zero se non è in coda.
-func (v Video) QueueExpiresAt() time.Time {
-	if v.Status != StatusQueued {
-		return time.Time{}
-	}
-	return v.QueuedAt.Add(QueueLifetime)
-}
-
-// QueueDaysLeft conta i giorni che restano, arrotondando per eccesso: a 30 ore dalla
-// scadenza ne restano 2, a 3 ore ne resta 1.
-func (v Video) QueueDaysLeft(now time.Time) int {
-	left := v.QueueExpiresAt().Sub(now)
-	if v.Status != StatusQueued || left <= 0 {
-		return 0
-	}
-	const day = 24 * time.Hour
-	return int((left + day - 1) / day)
 }

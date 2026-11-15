@@ -56,9 +56,10 @@ func Run(ctx context.Context, cfg Config, version string) error {
 	}
 	feeds := sources.NewRSSFeeds(sources.YouTubeFeedsURL, cfg.FetchTimeout, "spestube/"+version)
 
+	videos := datalibrary.NewVideoRepository(db)
 	librarySvc := library.NewService(library.Deps{
 		Channels: datalibrary.NewChannelRepository(db),
-		Videos:   datalibrary.NewVideoRepository(db),
+		Videos:   videos,
 		Feeds:    datalibrary.NewFeedRepository(feeds),
 		Handles:  datalibrary.NewHandleRepository(lookup),
 		Policy:   policyFromSettings{settingsSvc},
@@ -67,15 +68,17 @@ func Run(ctx context.Context, cfg Config, version string) error {
 		Loc: time.Local,
 	})
 
+	collectionsSvc := library.NewCollections(datalibrary.NewCollectionRepository(db), videos, time.Now)
+
 	srv := &http.Server{
 		Addr: ":" + strconv.Itoa(cfg.Port),
 		Handler: api.Routes(api.Services{
-			Library:  librarySvc,
-			Settings: settingsSvc,
-			Meta:     meta.Info{Version: version, Dev: cfg.Dev, HandleLookup: lookup != nil},
-			Now:      time.Now,
-			Ping:     db.PingContext,
-			Static:   webui.Handler(),
+			Library:     librarySvc,
+			Collections: collectionsSvc,
+			Settings:    settingsSvc,
+			Meta:        meta.Info{Version: version, Dev: cfg.Dev, HandleLookup: lookup != nil},
+			Ping:        db.PingContext,
+			Static:      webui.Handler(),
 		}),
 		ReadHeaderTimeout: 10 * time.Second,
 	}
@@ -83,7 +86,6 @@ func Run(ctx context.Context, cfg Config, version string) error {
 	var wg sync.WaitGroup
 	wg.Go(func() { schedule.Every(ctx, "fetch", cfg.FetchInterval, librarySvc.FetchAll) })
 	wg.Go(func() { schedule.Every(ctx, "release", cfg.ReleaseInterval, librarySvc.ReleaseDue) })
-	wg.Go(func() { schedule.Every(ctx, "expire-queue", cfg.FetchInterval, librarySvc.ExpireQueue) })
 
 	serveErr := make(chan error, 1)
 	go func() { serveErr <- srv.ListenAndServe() }()

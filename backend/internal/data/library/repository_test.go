@@ -154,7 +154,7 @@ func TestVideoListsAndArchiving(t *testing.T) {
 
 	early, late := video("presto", library.StatusNew), video("tardi", library.StatusNew)
 	early.FetchedAt, late.FetchedAt = t0.Add(-time.Hour), t0.Add(time.Hour)
-	if _, err := repo.AddMissing(ctx, []library.Video{early, late, video("oggi", library.StatusNew), video("ieri", library.StatusNew), video("coda", library.StatusNew)}); err != nil {
+	if _, err := repo.AddMissing(ctx, []library.Video{early, late, video("oggi", library.StatusNew), video("ieri", library.StatusNew)}); err != nil {
 		t.Fatal(err)
 	}
 	save := func(v library.Video) {
@@ -163,12 +163,10 @@ func TestVideoListsAndArchiving(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	oggi, ieri, coda := video("oggi", library.StatusReleased), video("ieri", library.StatusReleased), video("coda", library.StatusQueued)
+	oggi, ieri := video("oggi", library.StatusReleased), video("ieri", library.StatusReleased)
 	oggi.ReleasedAt, ieri.ReleasedAt = t0, t0.Add(-24*time.Hour)
-	coda.QueueReason, coda.QueuedAt = "serve", t0.Add(-library.QueueLifetime)
 	save(oggi)
 	save(ieri)
-	save(coda)
 
 	pending, err := repo.ListNewFetchedBefore(ctx, t0)
 	if err != nil || len(pending) != 1 || pending[0].ID != "presto" {
@@ -187,35 +185,12 @@ func TestVideoListsAndArchiving(t *testing.T) {
 		t.Errorf("archiviato = %+v", archived)
 	}
 
-	queued, err := repo.ListQueued(ctx)
-	if err != nil || len(queued) != 1 || queued[0].QueueReason != "serve" || !queued[0].QueuedAt.Equal(coda.QueuedAt) {
-		t.Errorf("coda = %+v, %v", queued, err)
-	}
-	// Il video è in coda da esattamente QueueLifetime: allo scoccare è scaduto.
-	if n, err := repo.ArchiveQueuedBefore(ctx, t0.Add(-library.QueueLifetime-time.Second), t0); err != nil || n != 0 {
-		t.Errorf("un secondo prima della scadenza: %d, %v", n, err)
-	}
-	if n, err := repo.ArchiveQueuedBefore(ctx, t0.Add(-library.QueueLifetime), t0); err != nil || n != 1 {
-		t.Errorf("alla scadenza: %d, %v", n, err)
-	}
 }
 
-func TestQueuedVideoNeedsAReasonInTheDatabase(t *testing.T) {
-	ctx := context.Background()
+func TestSaveOfAMissingVideo(t *testing.T) {
 	db := openDB(t)
 	seedChannel(t, db)
-	repo := NewVideoRepository(db)
-	if _, err := repo.AddMissing(ctx, []library.Video{video("a", library.StatusNew)}); err != nil {
-		t.Fatal(err)
-	}
-
-	// Il servizio non lo permette; il vincolo dice che non lo permette nemmeno il database.
-	noReason := video("a", library.StatusQueued)
-	noReason.QueuedAt = t0
-	if err := repo.Save(ctx, noReason); err == nil {
-		t.Error("un video in coda senza motivo è stato salvato")
-	}
-	if err := repo.Save(ctx, video("manca", library.StatusReleased)); apperr.KindOf(err) != apperr.KindNotFound {
+	if err := NewVideoRepository(db).Save(context.Background(), video("manca", library.StatusReleased)); apperr.KindOf(err) != apperr.KindNotFound {
 		t.Errorf("salvataggio di un video assente: %v", err)
 	}
 }

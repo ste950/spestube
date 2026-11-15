@@ -64,11 +64,6 @@ func (r *VideoRepository) ListReleased(ctx context.Context) ([]library.Video, er
 	return r.list(ctx, `WHERE v.status = ? ORDER BY v.published_at DESC`, string(library.StatusReleased))
 }
 
-// ListQueued ordina per ingresso in coda: in cima c'è il video più vicino alla scadenza.
-func (r *VideoRepository) ListQueued(ctx context.Context) ([]library.Video, error) {
-	return r.list(ctx, `WHERE v.status = ? ORDER BY v.queued_at ASC`, string(library.StatusQueued))
-}
-
 func (r *VideoRepository) ListNewFetchedBefore(ctx context.Context, cutoff time.Time) ([]library.Video, error) {
 	return r.list(ctx, `WHERE v.status = ? AND v.fetched_at < ? ORDER BY v.published_at DESC`,
 		string(library.StatusNew), cutoff.Unix())
@@ -100,11 +95,10 @@ func (r *VideoRepository) list(ctx context.Context, where string, args ...any) (
 // pubblicazione non cambiano dopo l'inserimento.
 func (r *VideoRepository) Save(ctx context.Context, v library.Video) error {
 	res, err := r.db.ExecContext(ctx,
-		`UPDATE videos SET status = ?, discard_reason = ?, released_at = ?, queue_reason = ?,
-		                   queued_at = ?, watched_at = ?, archived_at = ?
+		`UPDATE videos SET status = ?, discard_reason = ?, released_at = ?, watched_at = ?, archived_at = ?
 		 WHERE id = ?`,
-		string(v.Status), string(v.Discard), timeOrNull(v.ReleasedAt), v.QueueReason,
-		timeOrNull(v.QueuedAt), timeOrNull(v.WatchedAt), timeOrNull(v.ArchivedAt), v.ID)
+		string(v.Status), string(v.Discard), timeOrNull(v.ReleasedAt),
+		timeOrNull(v.WatchedAt), timeOrNull(v.ArchivedAt), v.ID)
 	if err != nil {
 		return fmt.Errorf("salvataggio del video %s: %w", v.ID, err)
 	}
@@ -116,12 +110,6 @@ func (r *VideoRepository) Save(ctx context.Context, v library.Video) error {
 
 func (r *VideoRepository) ArchiveReleasedBefore(ctx context.Context, cutoff, at time.Time) (int, error) {
 	return r.archive(ctx, `status = ? AND released_at < ?`, library.StatusReleased, cutoff, at)
-}
-
-// ArchiveQueuedBefore archivia i video entrati in coda fino a cutoff compreso: allo
-// scoccare della scadenza il video è scaduto.
-func (r *VideoRepository) ArchiveQueuedBefore(ctx context.Context, cutoff, at time.Time) (int, error) {
-	return r.archive(ctx, `status = ? AND queued_at <= ?`, library.StatusQueued, cutoff, at)
 }
 
 func (r *VideoRepository) archive(ctx context.Context, where string, status library.Status, cutoff, at time.Time) (int, error) {

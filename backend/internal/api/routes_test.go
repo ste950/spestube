@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -23,6 +24,11 @@ var now = time.Date(2026, time.November, 15, 9, 0, 0, 0, time.UTC)
 
 // newServer monta le rotte vere su servizi veri, con i fake al posto di database e YouTube.
 func newServer(t *testing.T, dev bool) (*httptest.Server, *librarytest.Videos) {
+	srv, videos, _ := newServerWithCollections(t, dev)
+	return srv, videos
+}
+
+func newServerWithCollections(t *testing.T, dev bool) (*httptest.Server, *librarytest.Videos, *librarytest.Collections) {
 	t.Helper()
 	videos := librarytest.NewVideos()
 	feeds := &librarytest.Feeds{
@@ -42,18 +48,19 @@ func newServer(t *testing.T, dev bool) (*httptest.Server, *librarytest.Videos) {
 		Policy:  librarytest.Policy{ReleaseAt: clock.TimeOfDay{Hour: 7}},
 		Now:     clockFn, Loc: time.UTC,
 	})
+	collections := librarytest.NewCollections(videos)
 	srv := httptest.NewServer(Routes(Services{
-		Library:  lib,
-		Settings: settings.NewService(settingstest.NewRepository(), settings.Defaults(clock.TimeOfDay{Hour: 7}), clockFn),
-		Meta:     meta.Info{Version: "test", Dev: dev},
-		Now:      clockFn,
-		Ping:     func(context.Context) error { return nil },
+		Library:     lib,
+		Collections: library.NewCollections(collections, videos, clockFn),
+		Settings:    settings.NewService(settingstest.NewRepository(), settings.Defaults(clock.TimeOfDay{Hour: 7}), clockFn),
+		Meta:        meta.Info{Version: "test", Dev: dev},
+		Ping:        func(context.Context) error { return nil },
 		Static: http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.Write([]byte("frontend"))
 		}),
 	}))
 	t.Cleanup(srv.Close)
-	return srv, videos
+	return srv, videos, collections
 }
 
 func call(t *testing.T, srv *httptest.Server, method, path, body string) (int, map[string]any) {
@@ -164,22 +171,103 @@ func TestVideoActions(t *testing.T) {
 	if status, body := call(t, srv, "GET", "/api/videos/nuovo", ""); status != http.StatusNotFound || errorCode(body) != "video_not_found" {
 		t.Errorf("un video non rilasciato si può aprire: %d %v", status, body)
 	}
-	if status, body := call(t, srv, "POST", "/api/videos/uscito/queue", `{"reason":"  "}`); status != http.StatusBadRequest || errorCode(body) != "queue_reason_required" {
-		t.Errorf("coda senza motivo: %d %v", status, body)
+	status, body := call(t, srv, "GET", "/api/videos/uscito", "")
+	if ids, ok := body["collection_ids"].([]any); status != http.StatusOK || !ok || len(ids) != 0 {
+		t.Errorf("video: %d %v", status, body)
 	}
-	status, body := call(t, srv, "POST", "/api/videos/uscito/queue", `{"reason":"per l'orto"}`)
-	if status != http.StatusOK || body["status"] != "queued" || body["queue_days_left"] != float64(14) || body["queue_expires_at"] != "2026-11-29T09:00:00Z" {
-		t.Errorf("in coda: %d %v", status, body)
-	}
-	status, body = call(t, srv, "GET", "/api/queue", "")
-	if list, _ := body["videos"].([]any); status != http.StatusOK || len(list) != 1 {
-		t.Errorf("coda: %d %v", status, body)
+	// La coda non esiste più: le sue rotte non rispondono.
+	if status, _ := call(t, srv, "GET", "/api/queue", ""); status != http.StatusNotFound {
+		t.Errorf("GET /api/queue = %d", status)
 	}
 	if status, body := call(t, srv, "POST", "/api/videos/uscito/watched", ""); status != http.StatusOK || body["status"] != "watched" {
 		t.Errorf("visto: %d %v", status, body)
 	}
 	if status, body := call(t, srv, "POST", "/api/videos/uscito/discard", ""); status != http.StatusConflict || errorCode(body) != "video_not_discardable" {
 		t.Errorf("scarto di un video visto: %d %v", status, body)
+	}
+}
+
+func TestCollections(t *testing.T) {
+	srv, videos, _ := newServerWithCollections(t, false)
+	videos.ByID["v1"] = library.Video{ID: "v1", Title: "Antenne LoRa", ChannelTitle: "Officina Radio", Status: library.StatusReleased}
+	videos.ByID["nuovo"] = library.Video{ID: "nuovo", Title: "Nuovo", Status: library.StatusNew}
+
+	status, body := call(t, srv, "POST", "/api/collections", `{"name":"  Orto  ","description":"idee"}`)
+	if status != http.StatusCreated || body["name"] != "Orto" || body["video_count"] != float64(0) || body["cover_video_id"] != nil {
+		t.Fatalf("creazione: %d %v", status, body)
+	}
+	orto := int(body["id"].(float64))
+	_, body = call(t, srv, "POST", "/api/collections", `{"name":"Cucina","description":""}`)
+	cucina := int(body["id"].(float64))
+	path := func(format string, args ...any) string { return fmt.Sprintf(format, args...) }
+
+	for _, tc := range []struct {
+		name, method, path, body string
+		status                   int
+		code                     string
+	}{
+		{"nome vuoto", "POST", "/api/collections", `{"name":" ","description":""}`, 400, "collection_name_required"},
+		{"nome già usato", "POST", "/api/collections", `{"name":"orto","description":""}`, 409, "collection_exists"},
+		{"rinomina su un nome usato", "PUT", path("/api/collections/%d", cucina), `{"name":"ORTO","description":""}`, 409, "collection_exists"},
+		{"raccolta inesistente", "GET", "/api/collections/999", "", 404, "collection_not_found"},
+		{"id non valido", "GET", "/api/collections/abc", "", 400, "invalid_id"},
+		{"video non rilasciato", "PUT", path("/api/collections/%d/videos/nuovo", orto), "", 404, "video_not_found"},
+		{"ordine incompleto", "PUT", "/api/collections/order", path(`{"ids":[%d]}`, orto), 409, "collection_order_invalid"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			status, body := call(t, srv, tc.method, tc.path, tc.body)
+			if status != tc.status || errorCode(body) != tc.code {
+				t.Errorf("risposta = %d %q, attesa %d %q", status, errorCode(body), tc.status, tc.code)
+			}
+		})
+	}
+
+	// Salvare due volte lo stesso video è lo stesso che salvarlo una volta.
+	for range 2 {
+		if status, _ := call(t, srv, "PUT", path("/api/collections/%d/videos/v1", orto), ""); status != http.StatusNoContent {
+			t.Fatalf("aggiunta del video: %d", status)
+		}
+	}
+	status, body = call(t, srv, "GET", path("/api/collections/%d", orto), "")
+	col, _ := body["collection"].(map[string]any)
+	list, _ := body["videos"].([]any)
+	if status != http.StatusOK || col["video_count"] != float64(1) || col["cover_video_id"] != "v1" || len(list) != 1 {
+		t.Fatalf("raccolta: %d %v", status, body)
+	}
+	if first := list[0].(map[string]any); first["channel_title"] != "Officina Radio" || first["added_at"] == nil {
+		t.Errorf("video della raccolta = %v", first)
+	}
+	_, video := call(t, srv, "GET", "/api/videos/v1", "")
+	if ids, _ := video["collection_ids"].([]any); len(ids) != 1 || ids[0] != float64(orto) {
+		t.Errorf("collection_ids = %v", video["collection_ids"])
+	}
+
+	status, body = call(t, srv, "PUT", path("/api/collections/%d", orto), `{"name":"Orto e giardino","description":""}`)
+	if status != http.StatusOK || body["name"] != "Orto e giardino" || body["description"] != "" {
+		t.Errorf("modifica: %d %v", status, body)
+	}
+
+	if status, _ := call(t, srv, "PUT", "/api/collections/order", path(`{"ids":[%d,%d]}`, cucina, orto)); status != http.StatusNoContent {
+		t.Errorf("riordino: %d", status)
+	}
+	_, body = call(t, srv, "GET", "/api/collections", "")
+	cols, _ := body["collections"].([]any)
+	if len(cols) != 2 || cols[0].(map[string]any)["name"] != "Cucina" {
+		t.Errorf("ordine dopo il riordino = %v", cols)
+	}
+
+	if status, _ := call(t, srv, "DELETE", path("/api/collections/%d/videos/v1", orto), ""); status != http.StatusNoContent {
+		t.Errorf("rimozione del video: %d", status)
+	}
+	if status, _ := call(t, srv, "DELETE", path("/api/collections/%d", orto), ""); status != http.StatusNoContent {
+		t.Errorf("eliminazione: %d", status)
+	}
+	if status, body := call(t, srv, "DELETE", path("/api/collections/%d", orto), ""); status != http.StatusNotFound || errorCode(body) != "collection_not_found" {
+		t.Errorf("seconda eliminazione: %d %v", status, body)
+	}
+	// Il video non sparisce con la raccolta.
+	if status, _ := call(t, srv, "GET", "/api/videos/v1", ""); status != http.StatusOK {
+		t.Errorf("il video è sparito con la raccolta: %d", status)
 	}
 }
 

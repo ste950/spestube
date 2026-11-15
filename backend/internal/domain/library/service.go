@@ -226,13 +226,6 @@ func (s *Service) release(ctx context.Context, fetchedBefore, now time.Time, f F
 	return res, nil
 }
 
-// ExpireQueue archivia i video rimasti in Da vedere oltre QueueLifetime.
-func (s *Service) ExpireQueue(ctx context.Context) error {
-	now := s.now()
-	_, err := s.videos.ArchiveQueuedBefore(ctx, now.Add(-QueueLifetime), now)
-	return err
-}
-
 // Today è il contenuto della schermata Oggi.
 type Today struct {
 	Videos        []Video
@@ -251,10 +244,6 @@ func (s *Service) Today(ctx context.Context) (Today, error) {
 	return Today{Videos: videos, NextReleaseAt: pol.ReleaseAt.Next(s.now(), s.loc)}, nil
 }
 
-func (s *Service) Queue(ctx context.Context) ([]Video, error) {
-	return s.videos.ListQueued(ctx)
-}
-
 // Video restituisce un video che si può aprire in Guarda.
 func (s *Service) Video(ctx context.Context, id string) (Video, error) {
 	v, err := s.videos.Get(ctx, id)
@@ -265,10 +254,6 @@ func (s *Service) Video(ctx context.Context, id string) (Video, error) {
 		return Video{}, apperr.NotFound("video_not_found", "video inesistente")
 	}
 	return v, nil
-}
-
-func (s *Service) Enqueue(ctx context.Context, id, reason string) (Video, error) {
-	return s.change(ctx, id, func(v Video) (Video, error) { return v.Enqueue(reason, s.now()) })
 }
 
 func (s *Service) MarkWatched(ctx context.Context, id string) (Video, error) {

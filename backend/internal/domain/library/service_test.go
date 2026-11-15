@@ -352,17 +352,24 @@ func TestReleaseDueCatchesUpAfterDowntime(t *testing.T) {
 	}
 }
 
-func TestReleaseDueKeepsQueuedAndWatchedVideos(t *testing.T) {
+func TestReleaseDueKeepsWatchedVideos(t *testing.T) {
 	w := newWorld(t)
 	yesterday := w.at(14, 7, 0)
-	w.videos.ByID["in-coda"] = library.Video{ID: "in-coda", Status: library.StatusQueued, ReleasedAt: yesterday, QueueReason: "serve", QueuedAt: yesterday}
 	w.videos.ByID["visto"] = library.Video{ID: "visto", Status: library.StatusWatched, ReleasedAt: yesterday}
+	w.videos.ByID["salvato"] = library.Video{
+		ID: "salvato", Status: library.StatusReleased, ReleasedAt: yesterday, CollectionIDs: []int64{1},
+	}
 
 	if err := w.svc.ReleaseDue(context.Background()); err != nil {
 		t.Fatal(err)
 	}
-	if got := w.statuses(); got[library.StatusQueued] != 1 || got[library.StatusWatched] != 1 {
-		t.Errorf("stati = %v: il rilascio archivia solo ciò che è rimasto in Oggi", got)
+	if got := w.videos.ByID["visto"].Status; got != library.StatusWatched {
+		t.Errorf("visto = %s: il rilascio archivia solo ciò che è rimasto in Oggi", got)
+	}
+	// Un video salvato esce da Oggi come gli altri: resta raggiungibile dalla raccolta.
+	saved := w.videos.ByID["salvato"]
+	if saved.Status != library.StatusArchived || len(saved.CollectionIDs) != 1 {
+		t.Errorf("salvato = %+v", saved)
 	}
 }
 
@@ -380,36 +387,6 @@ func TestReleaseNowIgnoresTheSchedule(t *testing.T) {
 	}
 	if got := w.statuses(); got[library.StatusReleased] != 2 {
 		t.Errorf("stati = %v: il rilascio forzato non archivia", got)
-	}
-}
-
-func TestExpireQueue(t *testing.T) {
-	w := newWorld(t)
-	queued := func(id string, age time.Duration) {
-		w.videos.ByID[id] = library.Video{ID: id, Status: library.StatusQueued, QueueReason: "serve", QueuedAt: w.now.Add(-age)}
-	}
-	day := 24 * time.Hour
-	queued("fresco", time.Hour)
-	queued("quasi", 14*day-time.Second)
-	queued("al-limite", 14*day)
-	queued("vecchio", 30*day)
-	w.videos.ByID["in-oggi"] = library.Video{ID: "in-oggi", Status: library.StatusReleased, ReleasedAt: w.now}
-
-	if err := w.svc.ExpireQueue(context.Background()); err != nil {
-		t.Fatal(err)
-	}
-	for id, want := range map[string]library.Status{
-		"fresco": library.StatusQueued, "quasi": library.StatusQueued,
-		"al-limite": library.StatusArchived, "vecchio": library.StatusArchived,
-		"in-oggi": library.StatusReleased,
-	} {
-		v := w.videos.ByID[id]
-		if v.Status != want {
-			t.Errorf("%s = %s, atteso %s", id, v.Status, want)
-		}
-		if want == library.StatusArchived && !v.ArchivedAt.Equal(w.now) {
-			t.Errorf("%s: archiviato alle %v", id, v.ArchivedAt)
-		}
 	}
 }
 
@@ -450,30 +427,19 @@ func TestVideoHidesWhatWasNeverShown(t *testing.T) {
 func TestVideoActionsAreSaved(t *testing.T) {
 	w := newWorld(t)
 	ctx := context.Background()
-	w.videos.ByID["a"] = library.Video{ID: "a", Status: library.StatusReleased}
 	w.videos.ByID["b"] = library.Video{ID: "b", Status: library.StatusReleased}
 	w.videos.ByID["c"] = library.Video{ID: "c", Status: library.StatusReleased}
 
-	if _, err := w.svc.Enqueue(ctx, "a", ""); codeOf(err) != "queue_reason_required" {
-		t.Errorf("coda senza motivo: %v", err)
-	}
-	if w.videos.ByID["a"].Status != library.StatusReleased {
-		t.Error("un'azione fallita non deve cambiare lo stato salvato")
-	}
-	if _, err := w.svc.Enqueue(ctx, "a", "per l'orto"); err != nil {
-		t.Fatal(err)
-	}
 	if _, err := w.svc.MarkWatched(ctx, "b"); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := w.svc.Discard(ctx, "c"); err != nil {
 		t.Fatal(err)
 	}
-	if got := w.statuses(); got[library.StatusQueued] != 1 || got[library.StatusWatched] != 1 || got[library.StatusDiscarded] != 1 {
+	if got := w.statuses(); got[library.StatusWatched] != 1 || got[library.StatusDiscarded] != 1 {
 		t.Errorf("stati = %v", got)
 	}
-	queue, err := w.svc.Queue(ctx)
-	if err != nil || len(queue) != 1 || queue[0].QueueReason != "per l'orto" {
-		t.Errorf("coda = %+v, %v", queue, err)
+	if _, err := w.svc.Discard(ctx, "b"); codeOf(err) != "video_not_discardable" {
+		t.Errorf("scarto di un video visto: %v", err)
 	}
 }
