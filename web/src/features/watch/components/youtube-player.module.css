@@ -1,0 +1,30 @@
+.player {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-md);
+  background: var(--color-player);
+}
+
+.frame,
+.frame iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* Sta sopra il riquadro vuoto finché il player non è pronto, e non intercetta i tocchi. */
+.status {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: var(--space-lg);
+  color: var(--color-on-player-muted);
+  font-size: var(--font-size-small);
+  text-align: center;
+  pointer-events: none;
+}

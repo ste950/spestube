@@ -1,0 +1,6 @@
+.spinner {
+  margin: 0;
+  padding: var(--space-lg) var(--space-xxs);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label);
+}

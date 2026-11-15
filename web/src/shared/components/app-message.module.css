@@ -1,0 +1,27 @@
+.base {
+  margin: 0;
+  padding: var(--space-md) var(--space-lg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-label);
+}
+
+.neutral {
+  composes: base;
+  background: var(--color-surface);
+  color: var(--color-text-soft);
+}
+
+.error {
+  composes: base;
+  border-color: var(--color-danger);
+  background: var(--color-danger-tint);
+  color: var(--color-danger);
+}
+
+.success {
+  composes: base;
+  border-color: var(--color-accent-tint);
+  background: var(--color-accent-tint);
+  color: var(--color-accent-dark);
+}

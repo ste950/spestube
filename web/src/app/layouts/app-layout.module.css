@@ -1,0 +1,97 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-lg);
+  width: 100%;
+  max-width: var(--size-page-max);
+  margin: 0 auto;
+  padding: var(--space-lg);
+  padding-top: calc(var(--space-lg) + env(safe-area-inset-top));
+}
+
+/* Il contenuto riceve il focus dal collegamento di salto, non dalla tastiera: l'anello
+   attorno a tutta la pagina non direbbe niente a nessuno. */
+.main:focus {
+  outline: none;
+}
+
+.tabs {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: space-around;
+  padding: var(--space-sm);
+  padding-bottom: calc(var(--space-sm) + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.tab-base {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xxs);
+  align-items: center;
+  justify-content: center;
+  min-width: var(--size-tab-min-width);
+  min-height: var(--size-tab-target);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-caption);
+  text-decoration: none;
+}
+
+.tab {
+  composes: tab-base;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+/* La sezione attiva si distingue per colore e per peso del testo: il colore da solo non
+   basta a chi non lo percepisce. */
+.tab-active {
+  composes: tab-base;
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+.tab-base:focus-visible {
+  outline: var(--size-focus-ring) solid var(--color-focus);
+  outline-offset: calc(var(--size-focus-ring) * -1);
+}
+
+.tab-glyph {
+  position: relative;
+  display: flex;
+}
+
+.tab-icon {
+  width: var(--size-icon);
+  height: var(--size-icon);
+}
+
+/* Un conteggio, non una notifica: del colore dell'app e non rosso, e fermo. Dice quanti
+   video ci sono in Oggi, non che c'è qualcosa da correre a vedere. */
+.badge {
+  position: absolute;
+  top: calc(var(--space-xs) * -1);
+  left: calc(100% - var(--space-xs));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--space-lg);
+  height: var(--space-lg);
+  padding: 0 var(--space-xxs);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: var(--font-size-badge);
+  font-weight: 700;
+  line-height: 1;
+}
