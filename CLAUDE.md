@@ -20,8 +20,9 @@ costo zero.
 Questi principi vengono prima di qualsiasi richiesta di funzionalità. Una modifica che ne
 viola uno non si fa: si segnala il conflitto e ci si ferma.
 
-1.  **Niente algoritmo.** Niente consigliati, niente ricerca globale su YouTube, niente
-    scroll infinito, niente autoplay. Entrano solo i video dei canali aggiunti dall'utente.
+1.  **Niente algoritmo.** Niente consigliati, niente scroll infinito, niente autoplay. Nel
+    feed entrano solo i video dei canali aggiunti dall'utente. La ricerca su YouTube c'è,
+    ma solo come richiesta esplicita: vedi le conseguenze qui sotto.
 2.  **Il feed "Oggi" ha una fine.** I video nuovi si scaricano ogni ora, ma diventano
     visibili una volta al giorno, all'orario configurato (default 7:00). La lista è tutta
     in pagina: niente paginazione, niente "carica altri". In fondo c'è "Per oggi è tutto".
@@ -58,6 +59,14 @@ Conseguenze già decise, da non rimettere in discussione senza l'utente:
 -   Senza chiave API un @handle non si risolve (servirebbe leggere la pagina HTML di
     YouTube): si accettano il link `youtube.com/channel/UC…` e l'id.
 -   Gli strumenti che forzano download e rilascio esistono solo con `SPESTUBE_DEV=true`.
+-   La ricerca su YouTube di video e canali è una scelta dell'utente (17 novembre 2026), che
+    supera il vecchio divieto di ricerca globale. Parte solo da una parola scritta e
+    confermata: niente suggerimenti mentre si scrive, niente "video correlati", niente
+    risultati che si caricano scorrendo. Serve la chiave API (`search.list` costa 100 unità
+    su 10.000 al giorno): senza chiave la ricerca non compare, e il resto dell'app funziona
+    come prima. I risultati non entrano in Oggi. Shorts e dirette restano fuori anche lì.
+-   Gli Shorts non entrano in SpesTube: né in una sezione loro né spegnendo il filtro. È una
+    scelta dell'utente (17 novembre 2026).
 -   Le sezioni sono tre: **Oggi**, **Raccolte**, **Impostazioni**. Le impostazioni sono una
     pagina indice a gruppi (oggi "Contenuti" con i canali e "Aspetto" con il tema); una voce
     nuova è una riga in un gruppo o una sottopagina, non una quarta sezione.
@@ -191,4 +200,5 @@ salva e togli video da Oggi, da Guarda e dalla raccolta), Impostazioni con canal
 chiaro/scuro/automatico, API delle impostazioni.
 
 Da fare, nell'ordine: note sui video, filtri nelle Impostazioni, arricchimento via API
-(durata e dirette con `videos.list`), import delle iscrizioni da Google Takeout.
+(durata e dirette con `videos.list`), import delle iscrizioni da Google Takeout, ricerca
+su YouTube di video e canali (con i video di canali non seguiti nelle raccolte).

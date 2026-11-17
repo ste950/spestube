@@ -27,7 +27,7 @@ nutri. SpesTube serve a scegliere cosa dare da mangiare alla testa.
 | Scroll infinito, feed che si rinnova | Il feed finisce: i video arrivano una volta al giorno |
 | Shorts | Esclusi |
 | Visualizzazioni e like | Non ci sono |
-| Ricerca su tutto YouTube | Non c'è |
+| Ricerca con suggerimenti e risultati infiniti | Si cerca solo quando lo chiedi, con la chiave API, e i risultati finiscono |
 
 ## Come funziona
 
@@ -168,7 +168,7 @@ Funzionano: canali, download dei feed, rilascio giornaliero, Oggi, Guarda, racco
 Impostazioni con il tema chiaro, scuro o automatico.
 
 In arrivo: note sui video, filtri nelle Impostazioni, durata dei video tramite API, import
-delle iscrizioni da Google Takeout.
+delle iscrizioni da Google Takeout, ricerca su YouTube di video e canali.
 
 ## Limiti noti
 
