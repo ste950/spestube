@@ -13,6 +13,10 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      // Il browser scarica il manifest senza cookie, se non glielo si chiede: dietro il
+      // forward-auth di Authelia riceverebbe il redirect al login invece del manifest, e
+      // l'app non si installerebbe. Così il link porta crossorigin="use-credentials".
+      useCredentials: true,
       includeAssets: ['icon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'SpesTube',
