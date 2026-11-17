@@ -1,0 +1,60 @@
+# Deploy di SpesTube sul Raspberry Pi, dietro Nginx Proxy Manager e Authelia.
+#
+# A differenza del docker-compose.yml nella radice, qui non si pubblica nessuna porta
+# sull'host: SpesTube non ha un login suo, e l'unico ingresso è il Proxy Host di NPM
+# (spestube.stepi.duckdns.org), protetto dal forward-auth di Authelia. NPM raggiunge il
+# container per nome, "spestube:8080", sulla rete condivisa "proxy".
+#
+# Sul Pi, dalla radice del repository:
+#   mkdir -p data && chown 65532:65532 data   # una tantum: il processo gira come nonroot
+#   cp .env.example .env                       # una tantum, poi modifica ciò che serve
+#   docker compose -f deploy/docker-compose.yml up -d --build
+#
+# Per aggiornare: git pull, poi lo stesso comando (il --build serve: l'immagine è locale).
+services:
+  spestube:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: spestube:local
+    container_name: spestube
+    restart: unless-stopped
+
+    # L'immagine è locale, non esiste su un registry: Watchtower non deve provare ad
+    # aggiornarla.
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+
+    # Le variabili vengono dal file .env nella radice del repository (vedi .env.example).
+    # SPESTUBE_PORT e SPESTUBE_BIND qui non servono: non c'è una porta sull'host.
+    env_file:
+      - path: ../.env
+        required: false
+    environment:
+      TZ: ${TZ:-Europe/Rome}
+      SPESTUBE_PORT: "8080"
+      SPESTUBE_DB_PATH: /data/spestube.db
+
+    volumes:
+      # Bind mount, non volume: il database resta un file normale sull'host e finisce nel
+      # dietpi-backup notturno, che salta i dati interni di Docker.
+      - ../data:/data
+
+    networks:
+      - proxy
+
+    # Tetto di memoria: se l'app perde RAM la uccide e la riavvia il kernel, senza
+    # trascinare giù gli altri servizi del Pi.
+    mem_limit: 128m
+
+    healthcheck:
+      test: ["CMD", "/spestube", "-healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+# Rete condivisa con Nginx Proxy Manager (repo pi_server). Deve già esistere.
+networks:
+  proxy:
+    external: true
