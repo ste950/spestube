@@ -1,0 +1,39 @@
+.base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--size-min-target);
+  min-height: var(--size-tab-target);
+  padding: var(--space-sm) var(--space-xl);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.primary {
+  composes: base;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.quiet {
+  composes: base;
+  border-color: var(--color-border-field);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+/* `:focus-visible` e non `:focus`: chi clicca non vede l'anello, chi usa la tastiera sì. */
+.base:focus-visible {
+  outline: var(--size-focus-ring) solid var(--color-focus);
+  outline-offset: var(--size-focus-ring);
+}
+
+.base:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}

@@ -1,0 +1,45 @@
+/* Sul telefono sale dal fondo, dove arriva il pollice; su uno schermo largo resta una
+   colonna centrata, come il resto dell'app. */
+.dialog {
+  width: 100%;
+  max-width: var(--size-page-max);
+  max-height: 85dvh;
+  margin: auto auto 0;
+  padding: var(--space-xl) var(--space-lg);
+  padding-bottom: calc(var(--space-xl) + env(safe-area-inset-bottom));
+  border: 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: var(--color-background);
+  color: var(--color-text);
+}
+
+.dialog::backdrop {
+  background: var(--color-scrim);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--font-size-heading);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.subject {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label);
+}
+
+@media (width >= 40rem) {
+  .dialog {
+    margin: auto;
+    border-radius: var(--radius-lg);
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "everywhere": ["../../**"],
+  "onlyInSources": [],
+  "featuresRoot": "src/features",
+  "layers": {
+    "app": {
+      "dir": "src/app",
+      "forbidden": [
+        "@domain/**",
+        "@data/**",
+        "@core/**",
+        "@bootstrap/**",
+        "!@bootstrap/config",
+        "@features/*/*",
+        "!@features/*/routes",
+        "@features/*/*/**"
+      ]
+    },
+    "features": {
+      "dir": "src/features",
+      "forbidden": ["@data/**", "@app/**", "@bootstrap/**", "!@bootstrap/dependencies"]
+    },
+    "data": {
+      "dir": "src/data",
+      "forbidden": [
+        "@features/**",
+        "@shared/**",
+        "@bootstrap/**",
+        "@app/**",
+        "react",
+        "react-dom",
+        "react-dom/**",
+        "react-router",
+        "react-router/**"
+      ]
+    },
+    "domain": {
+      "dir": "src/domain",
+      "forbidden": [
+        "@data/**",
+        "@features/**",
+        "@shared/**",
+        "@bootstrap/**",
+        "@app/**",
+        "react",
+        "react-dom",
+        "react-dom/**",
+        "react-router",
+        "react-router/**",
+        "zustand",
+        "zustand/**"
+      ]
+    },
+    "core": {
+      "dir": "src/core",
+      "forbidden": [
+        "@domain/**",
+        "@data/**",
+        "@features/**",
+        "@shared/**",
+        "@app/**",
+        "@bootstrap/**"
+      ]
+    },
+    "shared": {
+      "dir": "src/shared",
+      "forbidden": ["@domain/**", "@data/**", "@features/**", "@app/**", "@bootstrap/**"]
+    }
+  }
+}

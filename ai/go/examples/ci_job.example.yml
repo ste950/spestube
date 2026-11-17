@@ -1,0 +1,94 @@
+# Verifica del backend Go su macchina pulita.
+#
+# E' la materializzazione per questo stack dello scheletro trasversale
+# (ci/examples/ci.example.yml): eventi, filtro sui path, concurrency e permessi restano
+# quelli e non si toccano. Qui dentro cambia solo cio' che dipende dallo stack: la
+# toolchain e i comandi di verifica.
+#
+# Se il repo contiene solo il backend, questo file e' .github/workflows/ci.yml. Se ne
+# contiene anche altri (un'app client), questo e' il job `backend` di quel workflow.
+#
+# Da adattare: il nome del binario nella build incrociata, se il progetto non usa ./cmd/...
+
+name: CI
+
+on:
+  pull_request:
+    branches: [develop]
+    # La documentazione non puo' rompere la build: non si accende il runner per un .md.
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - '.github/ISSUE_TEMPLATE/**'
+  # Rete di sicurezza: cattura cio' che entra in develop senza passare da una PR verde.
+  push:
+    branches: [develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    # Il modulo e' `backend/`, e tutti i comandi della regola di verifica si eseguono da
+    # li': dichiararlo una volta evita un `cd` per step.
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # La versione della toolchain la dichiara il progetto, nella direttiva `go` di
+      # go.mod. Scriverla qui vorrebbe dire tenerne due, e divergono la prima volta che
+      # se ne alza una sola. La cache dei moduli si invalida con go.sum.
+      - name: Prepara Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+
+      # Gli stessi comandi di go/rules/verification.rule.md. In locale `gofmt -w` corregge,
+      # qui non puo': una CI che riscrive il codice verificherebbe un sorgente diverso da
+      # quello della PR. `gofmt -l` elenca i file da riformattare: lista vuota = verde.
+      #
+      # Gli step restano separati anche se sarebbero una riga sola: quando la CI e' rossa,
+      # il nome dello step che ha fallito e' la meta' della diagnosi.
+      - name: Formattazione
+        run: |
+          out=$(gofmt -l .)
+          if [ -n "$out" ]; then
+            echo "::error::file da riformattare con gofmt -w:"
+            echo "$out"
+            exit 1
+          fi
+
+      # Fallisce se go.mod o go.sum non corrispondono agli import: una dipendenza usata e
+      # non dichiarata, o dichiarata e non piu' usata.
+      - name: Moduli allineati
+        run: go mod tidy -diff
+
+      - name: Analisi statica
+        run: go vet ./...
+
+      # I test di architettura girano qui dentro, senza un comando dedicato: sono test
+      # come gli altri (quality/rules/architecture_tests.rule.md). `-race` costa poco su
+      # una suite piccola e trova cio' che nessun altro check vede.
+      - name: Test
+        run: go test -race ./...
+
+      # La "build di verifica": compila per l'architettura e con il CGO_ENABLED della
+      # distribuzione (go/rules/deployment.rule.md). Una dipendenza che chiede CGO passa i
+      # test sul runner, che CGO ce l'ha, e fallisce solo qui — che e' il punto.
+      - name: Build per il bersaglio
+        env:
+          CGO_ENABLED: '0'
+          GOOS: linux
+          GOARCH: arm64
+        run: go build ./...

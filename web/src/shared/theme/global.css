@@ -1,0 +1,33 @@
+/* L'unico foglio non modulare del sito. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* Su iPhone il testo non si ingrandisce da solo ruotando lo schermo. */
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  line-height: 1.45;
+}
+
+/* Con la preferenza attiva le transizioni si annullano, una volta sola e per tutti i
+   componenti, invece di chiedere a ognuno di ricordarsene. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

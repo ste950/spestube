@@ -1,0 +1,31 @@
+# SpesTube: un solo servizio, un solo volume. Le variabili arrivano dal file .env accanto a
+# questo (vedi .env.example); senza .env valgono i default scritti qui.
+services:
+  spestube:
+    build: .
+    image: spestube:local
+    restart: unless-stopped
+    ports:
+      # L'app non ha un login proprio: di default ascolta solo su questa macchina, dove la
+      # raggiunge il reverse proxy con l'autenticazione. Per aprirla alla rete locale
+      # imposta SPESTUBE_BIND=0.0.0.0.
+      - "${SPESTUBE_BIND:-127.0.0.1}:${SPESTUBE_PORT:-8080}:8080"
+    environment:
+      # Il fuso in cui si legge l'orario di arrivo dei video: "alle 7" sono le 7 di casa.
+      TZ: ${TZ:-Europe/Rome}
+      SPESTUBE_PORT: "8080"
+      SPESTUBE_DB_PATH: /data/spestube.db
+      SPESTUBE_RELEASE_TIME: ${SPESTUBE_RELEASE_TIME:-07:00}
+      SPESTUBE_YT_API_KEY: ${SPESTUBE_YT_API_KEY:-}
+      SPESTUBE_DEV: ${SPESTUBE_DEV:-false}
+    volumes:
+      - spestube-data:/data
+    healthcheck:
+      test: ["CMD", "/spestube", "-healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  spestube-data:

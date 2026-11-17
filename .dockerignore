@@ -1,0 +1,19 @@
+.git
+.claude
+ai
+docs
+data
+*.db
+*.db-shm
+*.db-wal
+.env
+**/.DS_Store
+
+web/node_modules
+web/dist
+web/dev-dist
+
+# Il frontend compilato lo produce la build dell'immagine: una copia locale non deve entrare.
+backend/internal/webui/dist/*
+!backend/internal/webui/dist/.gitkeep
+backend/dist
